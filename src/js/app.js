@@ -19,14 +19,19 @@ class App {
     this.stockStatusFilter = 'all';
     this.editingStockId = null;
 
-    // Date Filters (shared state for Dashboard & Transactions)
-    this.dashMonth = 'all';
-    this.dashYear = 'all';
+    // Auto-detect current month & year from calendar
+    const now = new Date();
+    const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
+    const currentYear = String(now.getFullYear());
+
+    // Date Filters (Default to Current Calendar Month & Year)
+    this.dashMonth = currentMonth;
+    this.dashYear = currentYear;
     this.dashDateFrom = '';
     this.dashDateTo = '';
 
-    this.txMonth = 'all';
-    this.txYear = 'all';
+    this.txMonth = currentMonth;
+    this.txYear = currentYear;
     this.txDateFrom = '';
     this.txDateTo = '';
 
@@ -35,13 +40,23 @@ class App {
 
   init() {
     this.bindEvents();
-    
+
+    // Set initial select dropdown values to current month
+    const dashM = document.getElementById('dashFilterMonth');
+    if (dashM) dashM.value = this.dashMonth;
+    const txM = document.getElementById('txFilterMonth');
+    if (txM) txM.value = this.txMonth;
+
     // Subscribe to store updates
     store.subscribe(() => this.render());
 
     // Initial render
     this.applyTheme(store.theme);
     this.render();
+
+    // Initial badges update
+    this.updateDashFilterBadge();
+    this.updateTxDateFilterBadge();
   }
 
   bindEvents() {
@@ -483,14 +498,19 @@ class App {
     this.renderPNLReport(summary);
   }
 
-  // Populate year dropdowns from actual transaction data
+  // Populate year dropdowns from actual transaction data + current calendar year
   populateYearDropdowns() {
     const years = store.getAvailableYears();
+    const currentYear = String(new Date().getFullYear());
+    if (!years.includes(currentYear)) {
+      years.unshift(currentYear);
+    }
+
     ['dashFilterYear', 'txFilterYear'].forEach(id => {
       const sel = document.getElementById(id);
       if (!sel) return;
-      const current = sel.value;
-      // Keep first "all" option, rebuild the rest
+      const targetVal = id === 'dashFilterYear' ? this.dashYear : this.txYear;
+
       sel.innerHTML = '<option value="all">-- ทุกปี --</option>';
       years.forEach(y => {
         const opt = document.createElement('option');
@@ -498,7 +518,7 @@ class App {
         opt.textContent = `ปี ${y}`;
         sel.appendChild(opt);
       });
-      sel.value = years.includes(current) ? current : 'all';
+      sel.value = years.includes(targetVal) ? targetVal : 'all';
     });
   }
 
