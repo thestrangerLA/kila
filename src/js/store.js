@@ -5,6 +5,7 @@ const STORAGE_KEYS = {
   INITIAL_BALANCE: 'kila_biz_initial_balance_kip',
   ACTUAL_BALANCE: 'kila_biz_actual_balance_kip',
   STOCK: 'kila_biz_football_stock_kip',
+  COD: 'kila_biz_cod_orders_kip',
   THEME: 'kila_biz_theme'
 };
 
@@ -14,6 +15,7 @@ class BizStore {
     this.initialBalance = 0;
     this.actualBalance = 0;   // เงินในบัญชีจริง (กรอกแมนวล)
     this.inventory = [];
+    this.codOrders = [];      // ติดตาม COD ขนส่ง (ANS, HAL, MX)
     this.theme = 'dark';
     this.listeners = [];
 
@@ -41,12 +43,14 @@ class BizStore {
       const savedBal   = localStorage.getItem(STORAGE_KEYS.INITIAL_BALANCE);
       const savedActual = localStorage.getItem(STORAGE_KEYS.ACTUAL_BALANCE);
       const savedStock = localStorage.getItem(STORAGE_KEYS.STOCK);
+      const savedCOD   = localStorage.getItem(STORAGE_KEYS.COD);
       const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME);
 
       if (savedTx)      this.transactions   = JSON.parse(savedTx);
       if (savedBal  !== null) this.initialBalance = parseFloat(savedBal)  || 0;
       if (savedActual !== null) this.actualBalance = parseFloat(savedActual) || 0;
       if (savedStock)   this.inventory      = JSON.parse(savedStock);
+      if (savedCOD)     this.codOrders      = JSON.parse(savedCOD);
       if (savedTheme)   this.theme          = savedTheme;
     } catch (e) {
       console.error('Error loading data from LocalStorage', e);
@@ -59,6 +63,7 @@ class BizStore {
       localStorage.setItem(STORAGE_KEYS.INITIAL_BALANCE, this.initialBalance.toString());
       localStorage.setItem(STORAGE_KEYS.ACTUAL_BALANCE,  this.actualBalance.toString());
       localStorage.setItem(STORAGE_KEYS.STOCK,           JSON.stringify(this.inventory));
+      localStorage.setItem(STORAGE_KEYS.COD,             JSON.stringify(this.codOrders));
       localStorage.setItem(STORAGE_KEYS.THEME,           this.theme);
     } catch (e) {
       console.error('Error saving data to LocalStorage', e);
@@ -75,12 +80,14 @@ class BizStore {
   clearAllData() {
     this.transactions   = [];
     this.inventory      = [];
+    this.codOrders       = [];
     this.initialBalance = 0;
     this.actualBalance  = 0;
     
     // Wipe local storage items
     localStorage.removeItem(STORAGE_KEYS.TRANSACTIONS);
     localStorage.removeItem(STORAGE_KEYS.STOCK);
+    localStorage.removeItem(STORAGE_KEYS.COD);
     localStorage.removeItem(STORAGE_KEYS.INITIAL_BALANCE);
     localStorage.removeItem(STORAGE_KEYS.ACTUAL_BALANCE);
 
@@ -97,7 +104,8 @@ class BizStore {
       initialBalance: this.initialBalance,
       actualBalance: this.actualBalance,
       transactions: this.transactions,
-      inventory: this.inventory
+      inventory: this.inventory,
+      codOrders: this.codOrders
     };
   }
 
@@ -108,6 +116,7 @@ class BizStore {
     if (typeof data.actualBalance === 'number') this.actualBalance = data.actualBalance;
     if (Array.isArray(data.transactions)) this.transactions = data.transactions;
     if (Array.isArray(data.inventory)) this.inventory = data.inventory;
+    if (Array.isArray(data.codOrders)) this.codOrders = data.codOrders;
 
     this.saveToStorage();
     this.notify();
@@ -461,10 +470,133 @@ class BizStore {
     });
   }
 
+  // COD Orders Management (ANS, HAL, MX)
+  addCODOrder(order) {
+    const newOrder = {
+      id: 'cod-' + Date.now(),
+      date: order.date || new Date().toISOString().split('T')[0],
+      courier: order.courier || 'ANS', // ANS, HAL, MX
+      trackingNo: order.trackingNo || '',
+      customerName: order.customerName || '',
+      codAmount: parseFloat(order.codAmount) || 0,
+      costAmount: parseFloat(order.costAmount) || 0,
+      shippingFee: parseFloat(order.shippingFee) || 0,
+      status: order.status || 'pending', // pending, completed, returned
+      note: order.note || ''
+    };
+
+    this.codOrders.unshift(newOrder);
+    this.saveToStorage();
+    this.notify();
+    return newOrder;
+  }
+
+  updateCODOrder(id, updatedData) {
+    const idx = this.codOrders.findIndex(o => o.id === id);
+    if (idx !== -1) {
+      this.codOrders[idx] = {
+        ...this.codOrders[idx],
+        ...updatedData,
+        codAmount: parseFloat(updatedData.codAmount) || 0,
+        costAmount: parseFloat(updatedData.costAmount) || 0,
+        shippingFee: parseFloat(updatedData.shippingFee) || 0
+      };
+      this.saveToStorage();
+      this.notify();
+    }
+  }
+
+  deleteCODOrder(id) {
+    this.codOrders = this.codOrders.filter(o => o.id !== id);
+    this.saveToStorage();
+    this.notify();
+  }
+
+  updateCODStatus(id, newStatus) {
+    const order = this.codOrders.find(o => o.id === id);
+    if (!order) return;
+
+    order.status = newStatus;
+
+    // If marked as completed (โอนแล้ว), auto-add Income Transaction to ledger if not added yet
+    if (newStatus === 'completed' && !order.incomeTxAdded) {
+      order.incomeTxAdded = true;
+      this.addTransaction({
+        date: new Date().toISOString().split('T')[0],
+        type: 'income',
+        category: 'ขายชุดฟุตบอล',
+        amount: order.codAmount,
+        linkedCost: order.costAmount,
+        paymentMethod: 'transfer',
+        note: `[COD ${order.courier} โอนแล้ว] พัสดุ #${order.trackingNo} - ${order.customerName}`,
+        tags: `COD, ${order.courier}, โอนแล้ว`
+      });
+    }
+
+    this.saveToStorage();
+    this.notify();
+  }
+
+  getCODSummaryByCourier(courierName) {
+    const list = this.codOrders.filter(o => o.courier === courierName);
+    let totalCount = list.length;
+    let pendingCount = 0;
+    let totalAmount = 0;      // รวมเงิน
+    let pendingAmount = 0;    // ค้างจ่าย
+    let totalProfit = 0;      // กำไรรวม
+    let actualProfit = 0;     // กำไรจริง
+
+    list.forEach(o => {
+      const cod = o.codAmount || 0;
+      const cost = o.costAmount || 0;
+      const ship = o.shippingFee || 0;
+      const profit = cod - cost - ship;
+
+      if (o.status !== 'returned') {
+        totalAmount += cod;
+        totalProfit += profit;
+      }
+
+      if (o.status === 'pending') {
+        pendingCount++;
+        pendingAmount += cod;
+      } else if (o.status === 'completed') {
+        actualProfit += profit;
+      }
+    });
+
+    return {
+      totalCount,
+      pendingCount,
+      totalAmount,
+      pendingAmount,
+      totalProfit,
+      actualProfit
+    };
+  }
+
+  getFilteredCODOrders({ search = '', courier = 'all', status = 'all' } = {}) {
+    return this.codOrders.filter(o => {
+      if (courier !== 'all' && o.courier !== courier) return false;
+      if (status !== 'all' && o.status !== status) return false;
+
+      if (search) {
+        const q = search.toLowerCase();
+        const inTrack = (o.trackingNo || '').toLowerCase().includes(q);
+        const inCust = (o.customerName || '').toLowerCase().includes(q);
+        const inNote = (o.note || '').toLowerCase().includes(q);
+        const inAmt = o.codAmount.toString().includes(q);
+        if (!inTrack && !inCust && !inNote && !inAmt) return false;
+      }
+      return true;
+    });
+  }
+
   resetToSampleData(triggerNotify = true) {
     this.transactions = generateSampleTransactions();
     this.initialBalance = DEFAULT_INITIAL_BALANCE;
     this.inventory = generateSampleStock();
+    this.codOrders = [];
     this.saveToStorage();
     if (triggerNotify) this.notify();
   }

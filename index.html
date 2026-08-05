@@ -83,6 +83,10 @@
         <i class="fa-solid fa-boxes-stacked"></i>
         <span>สต็อกชุดฟุตบอล (Stock)</span>
       </button>
+      <button class="tab-btn" data-tab="cod">
+        <i class="fa-solid fa-truck-fast"></i>
+        <span>ติดตาม COD ขนส่ง (COD)</span>
+      </button>
       <button class="tab-btn" data-tab="reports">
         <i class="fa-solid fa-file-invoice-dollar"></i>
         <span>รายงานทางการเงิน</span>
@@ -522,6 +526,155 @@
           <div id="stockEmptyState" class="empty-state hidden">
             <i class="fa-solid fa-boxes-packing empty-icon"></i>
             <p>ไม่พบรายการชุดฟุตบอลในระบบสต็อก</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 4b. COD COURIER TRACKING VIEW ================= -->
+      <section id="view-cod" class="tab-view">
+        <!-- Courier Summary Cards Row (ANS, HAL, MX) matching screenshot -->
+        <div class="cod-courier-grid">
+          <!-- ANS Card -->
+          <div class="cod-card cod-card-ans glass-card">
+            <div class="cod-card-header">
+              <span class="cod-courier-title title-ans">ANS</span>
+              <div class="cod-card-badge">
+                <span id="codBadgeANS">ค้าง 0/0</span>
+                <i class="fa-solid fa-truck"></i>
+              </div>
+            </div>
+            <div class="cod-card-body">
+              <div class="cod-metric-line">
+                <span>รวมเงิน:</span>
+                <strong id="codTotalANS">0</strong>
+              </div>
+              <div class="cod-metric-line text-rose">
+                <span>ค้างจ่าย:</span>
+                <strong id="codPendingANS">0</strong>
+              </div>
+              <div class="cod-metric-line">
+                <span>กำไรรวม:</span>
+                <strong id="codProfitANS">0</strong>
+              </div>
+              <div class="cod-metric-line text-emerald">
+                <span>กำไรจริง:</span>
+                <strong id="codActualProfitANS">0</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- HAL Card -->
+          <div class="cod-card cod-card-hal glass-card">
+            <div class="cod-card-header">
+              <span class="cod-courier-title title-hal">HAL</span>
+              <div class="cod-card-badge">
+                <span id="codBadgeHAL">ค้าง 0/0</span>
+                <i class="fa-solid fa-truck"></i>
+              </div>
+            </div>
+            <div class="cod-card-body">
+              <div class="cod-metric-line">
+                <span>รวมเงิน:</span>
+                <strong id="codTotalHAL">0</strong>
+              </div>
+              <div class="cod-metric-line text-rose">
+                <span>ค้างจ่าย:</span>
+                <strong id="codPendingHAL">0</strong>
+              </div>
+              <div class="cod-metric-line">
+                <span>กำไรรวม:</span>
+                <strong id="codProfitHAL">0</strong>
+              </div>
+              <div class="cod-metric-line text-emerald">
+                <span>กำไรจริง:</span>
+                <strong id="codActualProfitHAL">0</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- MX Card -->
+          <div class="cod-card cod-card-mx glass-card">
+            <div class="cod-card-header">
+              <span class="cod-courier-title title-mx">MX</span>
+              <div class="cod-card-badge">
+                <span id="codBadgeMX">ค้าง 0/0</span>
+                <i class="fa-solid fa-truck"></i>
+              </div>
+            </div>
+            <div class="cod-card-body">
+              <div class="cod-metric-line">
+                <span>รวมเงิน:</span>
+                <strong id="codTotalMX">0</strong>
+              </div>
+              <div class="cod-metric-line text-rose">
+                <span>ค้างจ่าย:</span>
+                <strong id="codPendingMX">0</strong>
+              </div>
+              <div class="cod-metric-line">
+                <span>กำไรรวม:</span>
+                <strong id="codProfitMX">0</strong>
+              </div>
+              <div class="cod-metric-line text-emerald">
+                <span>กำไรจริง:</span>
+                <strong id="codActualProfitMX">0</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- COD Table & Action Bar -->
+        <div class="table-container glass-card margin-top-md">
+          <div class="transactions-header-bar" style="margin-bottom:16px;">
+            <div class="search-filter-group">
+              <div class="input-with-icon">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="codSearch" placeholder="ค้นหาตามเลขพัสดุ, ชื่อลูกค้า, หมายเหตุ..." class="form-control">
+              </div>
+
+              <select id="codCourierFilter" class="form-control select-control">
+                <option value="all">-- ทุกขนส่ง (ANS/HAL/MX) --</option>
+                <option value="ANS">ANS Express</option>
+                <option value="HAL">HAL Express</option>
+                <option value="MX">MX Express</option>
+              </select>
+
+              <select id="codStatusFilter" class="form-control select-control">
+                <option value="all">-- ทุกสถานะ --</option>
+                <option value="pending">⏳ ค้างโอน COD</option>
+                <option value="completed">✅ โอนแล้ว</option>
+                <option value="returned">↩️ พัสดุตีกลับ</option>
+              </select>
+            </div>
+
+            <button id="btnOpenAddCODModal" class="btn btn-primary btn-lg">
+              <i class="fa-solid fa-truck-ramp-box"></i>
+              <span>+ บันทึกรายการ COD</span>
+            </button>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>วันที่</th>
+                  <th>ขนส่ง</th>
+                  <th>เลขพัสดุ / ลูกค้า</th>
+                  <th class="text-right">ยอด COD (₭)</th>
+                  <th class="text-right">ต้นทุนสินค้า (₭)</th>
+                  <th class="text-right">ค่าส่ง (₭)</th>
+                  <th class="text-right">กำไรสุทธิ (₭)</th>
+                  <th>สถานะ</th>
+                  <th class="text-center">จัดการ</th>
+                </tr>
+              </thead>
+              <tbody id="codTableBody">
+                <!-- COD rows dynamically inserted -->
+              </tbody>
+            </table>
+          </div>
+          <div id="codEmptyState" class="empty-state hidden">
+            <i class="fa-solid fa-truck-fast empty-icon"></i>
+            <p>ยังไม่มีรายการ COD ในขนส่งที่เลือก</p>
           </div>
         </div>
       </section>
@@ -1038,6 +1191,77 @@
             </button>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Modal: บันทึกรายการ COD ขนส่ง -->
+    <div id="codModal" class="modal-overlay hidden">
+      <div class="modal-card glass-card modal-md">
+        <div class="modal-header">
+          <h3 id="codModalTitle"><i class="fa-solid fa-truck-fast"></i> บันทึกรายการ COD ขนส่ง</h3>
+          <button id="btnCloseCODModal" class="btn-close">&times;</button>
+        </div>
+        <form id="codForm">
+          <div class="form-row grid-col-2">
+            <div class="form-group">
+              <label>บริษัทขนส่ง (Courier)</label>
+              <select id="codCourier" class="form-control select-control" required>
+                <option value="ANS">ANS Express</option>
+                <option value="HAL">HAL Express</option>
+                <option value="MX">MX Express</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>วันที่ส่งพัสดุ</label>
+              <input type="date" id="codDate" class="form-control" required>
+            </div>
+          </div>
+
+          <div class="form-row grid-col-2">
+            <div class="form-group">
+              <label>เลขติดตามพัสดุ (Tracking No.)</label>
+              <input type="text" id="codTrackingNo" class="form-control" placeholder="เช่น ANS-99882" required>
+            </div>
+            <div class="form-group">
+              <label>ชื่อลูกค้า / เบอร์โทรศัพท์</label>
+              <input type="text" id="codCustomerName" class="form-control" placeholder="เช่น ท้าว สมชาย 020-XXXXXXX">
+            </div>
+          </div>
+
+          <div class="form-row grid-col-3">
+            <div class="form-group">
+              <label>ยอดเก็บเงินปลายทาง (COD ₭)</label>
+              <input type="number" id="codAmount" class="form-control" placeholder="0" min="0" required>
+            </div>
+            <div class="form-group">
+              <label>ต้นทุนสินค้า (Cost ₭)</label>
+              <input type="number" id="codCostAmount" class="form-control" placeholder="0" min="0">
+            </div>
+            <div class="form-group">
+              <label>ค่าส่งพัสดุ (Ship Fee ₭)</label>
+              <input type="number" id="codShippingFee" class="form-control" placeholder="0" min="0">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>สถานะการโอนเงิน (Status)</label>
+            <select id="codStatus" class="form-control select-control">
+              <option value="pending">⏳ ค้างโอน COD</option>
+              <option value="completed">✅ โอนเงินแล้ว</option>
+              <option value="returned">↩️ พัสดุตีกลับ</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>หมายเหตุ</label>
+            <input type="text" id="codNote" class="form-control" placeholder="รายละเอียดเพิ่มเติม...">
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" id="btnCancelCODModal" class="btn btn-secondary">ยกเลิก</button>
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> บันทึกข้อมูล</button>
+          </div>
+        </form>
       </div>
     </div>
 

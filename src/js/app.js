@@ -4,6 +4,7 @@ import { renderCharts } from './charts.js';
 import { exportToCSV, printFinancialReport, exportJSONBackup } from './export.js';
 import { renderStockView } from './stock.js';
 import { posManager } from './pos.js';
+import { renderCODView } from './cod.js';
 
 // App Controller
 class App {
@@ -18,6 +19,12 @@ class App {
     this.stockSizeFilter = 'all';
     this.stockStatusFilter = 'all';
     this.editingStockId = null;
+
+    // COD Tracking State & Filters
+    this.codSearchQuery = '';
+    this.codCourierFilter = 'all';
+    this.codStatusFilter = 'all';
+    this.editingCODId = null;
 
     // Auto-detect current month & year from calendar
     const now = new Date();
@@ -406,6 +413,61 @@ class App {
       }
     });
 
+    // 8b. COD Courier Tracking Events
+    document.getElementById('btnOpenAddCODModal')?.addEventListener('click', () => {
+      this.editingCODId = null;
+      document.getElementById('codForm').reset();
+      document.getElementById('codModalTitle').innerHTML = '<i class="fa-solid fa-truck-fast"></i> บันทึกรายการ COD ขนส่ง';
+      document.getElementById('codDate').value = new Date().toISOString().split('T')[0];
+      this.openModal('codModal');
+    });
+
+    document.getElementById('btnCloseCODModal')?.addEventListener('click', () => this.closeModal('codModal'));
+    document.getElementById('btnCancelCODModal')?.addEventListener('click', () => this.closeModal('codModal'));
+
+    document.getElementById('codForm')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const codData = {
+        courier: document.getElementById('codCourier').value,
+        date: document.getElementById('codDate').value,
+        trackingNo: document.getElementById('codTrackingNo').value,
+        customerName: document.getElementById('codCustomerName').value,
+        codAmount: parseFloat(document.getElementById('codAmount').value) || 0,
+        costAmount: parseFloat(document.getElementById('codCostAmount').value) || 0,
+        shippingFee: parseFloat(document.getElementById('codShippingFee').value) || 0,
+        status: document.getElementById('codStatus').value,
+        note: document.getElementById('codNote').value
+      };
+
+      if (this.editingCODId) {
+        store.updateCODOrder(this.editingCODId, codData);
+        this.showToast('อัปเดตรายการ COD เรียบร้อย');
+      } else {
+        store.addCODOrder(codData);
+        this.showToast('เพิ่มรายการ COD เรียบร้อยแล้ว!');
+      }
+
+      this.closeModal('codModal');
+    });
+
+    document.getElementById('codSearch')?.addEventListener('input', (e) => {
+      this.codSearchQuery = e.target.value;
+      renderCODView(this.codSearchQuery, this.codCourierFilter, this.codStatusFilter);
+      this.attachCODTableListeners();
+    });
+
+    document.getElementById('codCourierFilter')?.addEventListener('change', (e) => {
+      this.codCourierFilter = e.target.value;
+      renderCODView(this.codSearchQuery, this.codCourierFilter, this.codStatusFilter);
+      this.attachCODTableListeners();
+    });
+
+    document.getElementById('codStatusFilter')?.addEventListener('change', (e) => {
+      this.codStatusFilter = e.target.value;
+      renderCODView(this.codSearchQuery, this.codCourierFilter, this.codStatusFilter);
+      this.attachCODTableListeners();
+    });
+
     // 9. Print Report Button
     document.getElementById('btnPrintReport')?.addEventListener('click', () => {
       const summary = store.getSummary();
@@ -438,6 +500,9 @@ class App {
     } else if (tabName === 'stock') {
       renderStockView(this.stockSearchQuery, this.stockSizeFilter, this.stockStatusFilter);
       this.attachStockTableListeners();
+    } else if (tabName === 'cod') {
+      renderCODView(this.codSearchQuery, this.codCourierFilter, this.codStatusFilter);
+      this.attachCODTableListeners();
     } else if (tabName === 'transactions') {
       this.renderTransactionsTable();
     }
@@ -489,6 +554,10 @@ class App {
     this.renderStockMetrics(summary);
     renderStockView(this.stockSearchQuery, this.stockSizeFilter, this.stockStatusFilter);
     this.attachStockTableListeners();
+
+    // Render COD Tracking View
+    renderCODView(this.codSearchQuery, this.codCourierFilter, this.codStatusFilter);
+    this.attachCODTableListeners();
 
     // Render POS Catalog & Cart
     posManager.renderCatalog();
@@ -707,6 +776,57 @@ class App {
         }
       });
     });
+  }
+
+  attachCODTableListeners() {
+    const tbody = document.getElementById('codTableBody');
+    if (!tbody) return;
+
+    tbody.querySelectorAll('.btn-cod-complete').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = e.currentTarget.dataset.id;
+        store.updateCODStatus(id, 'completed');
+        confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+        this.showToast('อัปเดตสถานะเป็น "โอนแล้ว" และลงบันทึกรายรับให้อัตโนมัติ!');
+      });
+    });
+
+    tbody.querySelectorAll('.btn-cod-edit').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = e.currentTarget.dataset.id;
+        this.editCODOrder(id);
+      });
+    });
+
+    tbody.querySelectorAll('.btn-cod-delete').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = e.currentTarget.dataset.id;
+        if (confirm('คุณแน่ใจหรือไม่ว่าต้องการลบรายการ COD นี้?')) {
+          store.deleteCODOrder(id);
+          this.showToast('ลบรายการ COD เรียบร้อย');
+        }
+      });
+    });
+  }
+
+  editCODOrder(id) {
+    const order = store.codOrders.find(o => o.id === id);
+    if (!order) return;
+
+    this.editingCODId = id;
+    document.getElementById('codModalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> แก้ไขรายการ COD';
+
+    document.getElementById('codCourier').value = order.courier;
+    document.getElementById('codDate').value = order.date;
+    document.getElementById('codTrackingNo').value = order.trackingNo;
+    document.getElementById('codCustomerName').value = order.customerName || '';
+    document.getElementById('codAmount').value = order.codAmount;
+    document.getElementById('codCostAmount').value = order.costAmount || 0;
+    document.getElementById('codShippingFee').value = order.shippingFee || 0;
+    document.getElementById('codStatus').value = order.status;
+    document.getElementById('codNote').value = order.note || '';
+
+    this.openModal('codModal');
   }
 
   editTransaction(id) {
