@@ -622,6 +622,49 @@
           </div>
         </div>
 
+        <!-- Date Filter Bar for COD (แยกตามเดือน / วันที่) -->
+        <div class="date-filter-bar glass-card">
+          <div class="date-filter-left">
+            <i class="fa-solid fa-calendar-days" style="color: var(--accent-primary);"></i>
+            <span class="date-filter-label">กรองช่วงเวลา COD:</span>
+          </div>
+
+          <div class="date-filter-controls">
+            <select id="codFilterMonth" class="form-control select-control select-sm">
+              <option value="all">-- ทุกเดือน --</option>
+              <option value="01">มกราคม (01)</option>
+              <option value="02">กุมภาพันธ์ (02)</option>
+              <option value="03">มีนาคม (03)</option>
+              <option value="04">เมษายน (04)</option>
+              <option value="05">พฤษภาคม (05)</option>
+              <option value="06">มิถุนายน (06)</option>
+              <option value="07">กรกฎาคม (07)</option>
+              <option value="08">สิงหาคม (08)</option>
+              <option value="09">กันยายน (09)</option>
+              <option value="10">ตุลาคม (10)</option>
+              <option value="11">พฤศจิกายน (11)</option>
+              <option value="12">ธันวาคม (12)</option>
+            </select>
+
+            <select id="codFilterYear" class="form-control select-control select-sm">
+              <option value="all">-- ทุกปี --</option>
+            </select>
+
+            <select id="codFilterDate" class="form-control select-control select-sm">
+              <option value="all">-- ทุกวันที่ในเดือน --</option>
+            </select>
+
+            <button id="btnResetCODFilters" class="btn btn-outline btn-sm" title="ล้างตัวกรอง">
+              <i class="fa-solid fa-filter-circle-xmark"></i> ล้างตัวกรอง
+            </button>
+
+            <div id="codFilterBadge" class="filter-active-badge">
+              <i class="fa-solid fa-circle-dot"></i>
+              <span id="codFilterBadgeText">กรอง: สิงหาคม</span>
+            </div>
+          </div>
+        </div>
+
         <!-- COD Table & Action Bar -->
         <div class="table-container glass-card margin-top-md">
           <div class="transactions-header-bar" style="margin-bottom:16px;">

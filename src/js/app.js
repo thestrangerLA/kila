@@ -20,10 +20,13 @@ class App {
     this.stockStatusFilter = 'all';
     this.editingStockId = null;
 
-    // COD Tracking State & Filters
+    // COD Tracking State & Filters (Default to Current Calendar Month & Year)
     this.codSearchQuery = '';
     this.codCourierFilter = 'all';
     this.codStatusFilter = 'all';
+    this.codMonth = currentMonth;
+    this.codYear = currentYear;
+    this.codDate = 'all';
     this.editingCODId = null;
 
     // Auto-detect current month & year from calendar
@@ -53,6 +56,8 @@ class App {
     if (dashM) dashM.value = this.dashMonth;
     const txM = document.getElementById('txFilterMonth');
     if (txM) txM.value = this.txMonth;
+    const codM = document.getElementById('codFilterMonth');
+    if (codM) codM.value = this.codMonth;
 
     // Subscribe to store updates
     store.subscribe(() => this.render());
@@ -64,6 +69,7 @@ class App {
     // Initial badges update
     this.updateDashFilterBadge();
     this.updateTxDateFilterBadge();
+    this.updateCODFilterBadge();
   }
 
   bindEvents() {
@@ -494,20 +500,52 @@ class App {
 
     document.getElementById('codSearch')?.addEventListener('input', (e) => {
       this.codSearchQuery = e.target.value;
-      renderCODView(this.codSearchQuery, this.codCourierFilter, this.codStatusFilter);
-      this.attachCODTableListeners();
+      this.renderCODPage();
     });
 
     document.getElementById('codCourierFilter')?.addEventListener('change', (e) => {
       this.codCourierFilter = e.target.value;
-      renderCODView(this.codSearchQuery, this.codCourierFilter, this.codStatusFilter);
-      this.attachCODTableListeners();
+      this.renderCODPage();
     });
 
     document.getElementById('codStatusFilter')?.addEventListener('change', (e) => {
       this.codStatusFilter = e.target.value;
-      renderCODView(this.codSearchQuery, this.codCourierFilter, this.codStatusFilter);
-      this.attachCODTableListeners();
+      this.renderCODPage();
+    });
+
+    document.getElementById('codFilterMonth')?.addEventListener('change', (e) => {
+      this.codMonth = e.target.value;
+      this.codDate = 'all';
+      this.renderCODPage();
+    });
+
+    document.getElementById('codFilterYear')?.addEventListener('change', (e) => {
+      this.codYear = e.target.value;
+      this.codDate = 'all';
+      this.renderCODPage();
+    });
+
+    document.getElementById('codFilterDate')?.addEventListener('change', (e) => {
+      this.codDate = e.target.value;
+      this.renderCODPage();
+    });
+
+    document.getElementById('btnResetCODFilters')?.addEventListener('click', () => {
+      this.codSearchQuery = '';
+      this.codCourierFilter = 'all';
+      this.codStatusFilter = 'all';
+      this.codMonth = 'all';
+      this.codYear = 'all';
+      this.codDate = 'all';
+
+      const s = document.getElementById('codSearch'); if (s) s.value = '';
+      const c = document.getElementById('codCourierFilter'); if (c) c.value = 'all';
+      const st = document.getElementById('codStatusFilter'); if (st) st.value = 'all';
+      const m = document.getElementById('codFilterMonth'); if (m) m.value = 'all';
+      const y = document.getElementById('codFilterYear'); if (y) y.value = 'all';
+      const d = document.getElementById('codFilterDate'); if (d) d.value = 'all';
+
+      this.renderCODPage();
     });
 
     // 9. Print Report Button
@@ -543,8 +581,7 @@ class App {
       renderStockView(this.stockSearchQuery, this.stockSizeFilter, this.stockStatusFilter);
       this.attachStockTableListeners();
     } else if (tabName === 'cod') {
-      renderCODView(this.codSearchQuery, this.codCourierFilter, this.codStatusFilter);
-      this.attachCODTableListeners();
+      this.renderCODPage();
     } else if (tabName === 'transactions') {
       this.renderTransactionsTable();
     }
@@ -598,8 +635,7 @@ class App {
     this.attachStockTableListeners();
 
     // Render COD Tracking View
-    renderCODView(this.codSearchQuery, this.codCourierFilter, this.codStatusFilter);
-    this.attachCODTableListeners();
+    this.renderCODPage();
 
     // Render POS Catalog & Cart
     posManager.renderCatalog();
@@ -617,10 +653,13 @@ class App {
       years.unshift(currentYear);
     }
 
-    ['dashFilterYear', 'txFilterYear'].forEach(id => {
+    ['dashFilterYear', 'txFilterYear', 'codFilterYear'].forEach(id => {
       const sel = document.getElementById(id);
       if (!sel) return;
-      const targetVal = id === 'dashFilterYear' ? this.dashYear : this.txYear;
+      let targetVal = 'all';
+      if (id === 'dashFilterYear') targetVal = this.dashYear;
+      else if (id === 'txFilterYear') targetVal = this.txYear;
+      else if (id === 'codFilterYear') targetVal = this.codYear;
 
       sel.innerHTML = '<option value="all">-- ทุกปี --</option>';
       years.forEach(y => {
@@ -631,6 +670,31 @@ class App {
       });
       sel.value = years.includes(targetVal) ? targetVal : 'all';
     });
+  }
+
+  renderCODPage() {
+    renderCODView(this.codSearchQuery, this.codCourierFilter, this.codStatusFilter, this.codMonth, this.codYear, this.codDate);
+    this.attachCODTableListeners();
+    this.updateCODFilterBadge();
+  }
+
+  updateCODFilterBadge() {
+    const isFiltered = this.codMonth !== 'all' || this.codYear !== 'all' || this.codDate !== 'all' || this.codCourierFilter !== 'all' || this.codStatusFilter !== 'all';
+    const badge = document.getElementById('codFilterBadge');
+    const badgeText = document.getElementById('codFilterBadgeText');
+    if (!badge) return;
+    if (isFiltered) {
+      badge.classList.remove('hidden');
+      const parts = [];
+      if (this.codYear !== 'all') parts.push(`ปี ${this.codYear}`);
+      if (this.codMonth !== 'all') parts.push(document.querySelector(`#codFilterMonth option[value="${this.codMonth}"]`)?.textContent || '');
+      if (this.codDate !== 'all') parts.push(`วันที่ ${this.codDate}`);
+      if (this.codCourierFilter !== 'all') parts.push(this.codCourierFilter);
+      if (this.codStatusFilter !== 'all') parts.push(document.querySelector(`#codStatusFilter option[value="${this.codStatusFilter}"]`)?.textContent || '');
+      if (badgeText) badgeText.textContent = `กรอง: ${parts.join(' | ')}`;
+    } else {
+      badge.classList.add('hidden');
+    }
   }
 
   renderDashboard() {

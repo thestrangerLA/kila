@@ -537,8 +537,14 @@ class BizStore {
     this.notify();
   }
 
-  getCODSummaryByCourier(courierName) {
-    const list = this.codOrders.filter(o => o.courier === courierName);
+  getCODSummaryByCourier(courierName, { month = 'all', year = 'all' } = {}) {
+    const list = this.codOrders.filter(o => {
+      if (o.courier !== courierName) return false;
+      if (month !== 'all' && !o.date.startsWith(`${o.date.slice(0,4)}-${month}`)) return false;
+      if (year !== 'all' && !o.date.startsWith(year)) return false;
+      return true;
+    });
+
     let totalCount = list.length;
     let pendingCount = 0;
     let totalAmount = 0;      // รวมเงิน
@@ -549,8 +555,7 @@ class BizStore {
     list.forEach(o => {
       const cod = o.codAmount || 0;
       const cost = o.costAmount || 0;
-      const ship = o.shippingFee || 0;
-      const profit = cod - cost - ship;
+      const profit = cod - cost;
 
       if (o.status !== 'returned') {
         totalAmount += cod;
@@ -575,21 +580,40 @@ class BizStore {
     };
   }
 
-  getFilteredCODOrders({ search = '', courier = 'all', status = 'all' } = {}) {
+  getFilteredCODOrders({ search = '', courier = 'all', status = 'all', month = 'all', year = 'all', date = 'all' } = {}) {
     return this.codOrders.filter(o => {
       if (courier !== 'all' && o.courier !== courier) return false;
       if (status !== 'all' && o.status !== status) return false;
+      if (month !== 'all' && !o.date.startsWith(`${o.date.slice(0,4)}-${month}`)) return false;
+      if (year !== 'all' && !o.date.startsWith(year)) return false;
+      if (date !== 'all' && o.date !== date) return false;
 
       if (search) {
         const q = search.toLowerCase();
         const inTrack = (o.trackingNo || '').toLowerCase().includes(q);
         const inCust = (o.customerName || '').toLowerCase().includes(q);
+        const inProd = (o.productName || '').toLowerCase().includes(q);
         const inNote = (o.note || '').toLowerCase().includes(q);
         const inAmt = o.codAmount.toString().includes(q);
-        if (!inTrack && !inCust && !inNote && !inAmt) return false;
+        if (!inTrack && !inCust && !inProd && !inNote && !inAmt) return false;
       }
       return true;
     });
+  }
+
+  getAvailableCODYears() {
+    const years = new Set(this.codOrders.map(o => o.date.slice(0,4)).filter(Boolean));
+    return [...years].sort((a, b) => b - a);
+  }
+
+  getAvailableCODDatesInMonth(month = 'all', year = 'all') {
+    const filtered = this.codOrders.filter(o => {
+      if (month !== 'all' && !o.date.startsWith(`${o.date.slice(0,4)}-${month}`)) return false;
+      if (year !== 'all' && !o.date.startsWith(year)) return false;
+      return true;
+    });
+    const dates = new Set(filtered.map(o => o.date).filter(Boolean));
+    return [...dates].sort((a, b) => b.localeCompare(a));
   }
 
   resetToSampleData(triggerNotify = true) {
