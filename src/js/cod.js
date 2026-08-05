@@ -95,7 +95,9 @@ export function populateCODDateDropdown(monthFilter = 'all', yearFilter = 'all')
   dates.forEach(d => {
     const opt = document.createElement('option');
     opt.value = d;
-    opt.textContent = `วันที่ ${d}`;
+    const [yyyy, mm, dd] = d.split('-');
+    const label = (dd && mm && yyyy) ? `วันที่ ${dd}/${mm}/${yyyy}` : `วันที่ ${d}`;
+    opt.textContent = label;
     sel.appendChild(opt);
   });
 
@@ -135,7 +137,7 @@ export function renderCODCourierCards(monthFilter = 'all', yearFilter = 'all') {
   });
 }
 
-// 2. Render COD Orders Table grouped by Date with Collapsible Dropdown Header
+// 2. Render COD Orders Table grouped by Date (Collapsed by default matching screenshot)
 export function renderCODTable(searchQuery = '', courierFilter = 'all', statusFilter = 'all', monthFilter = 'all', yearFilter = 'all', dateFilter = 'all') {
   const tbody = document.getElementById('codTableBody');
   const emptyState = document.getElementById('codEmptyState');
@@ -199,22 +201,26 @@ export function renderCODTable(searchQuery = '', courierFilter = 'all', statusFi
       }
     });
 
-    // Date Dropdown Header Row showing pending order ratio (e.g. ค้างโอน: 1/2 order)
+    const [yyyy, mm, dd] = dateStr.split('-');
+    const formattedDateLabel = (dd && mm && yyyy) ? `วันที่ ${dd}/${mm}/${yyyy}` : `วันที่ ${dateStr}`;
+
+    // Date Header Card (Collapsed by default with circular dropdown button matching user screenshot)
     html += `
       <tr class="cod-date-group-header" data-date="${dateStr}">
-        <td colspan="9" style="padding:10px 16px; background:rgba(30,41,59,0.85); cursor:pointer; border-bottom:1px solid var(--glass-border);">
+        <td colspan="9" style="padding:12px 16px; background:rgba(30,41,59,0.85); cursor:pointer; border-bottom:1px solid var(--glass-border); border-radius:12px; margin-bottom:6px;">
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-            <div style="display:flex; align-items:center; gap:8px;">
-              <i class="fa-solid fa-chevron-down cod-date-toggle-icon" style="transition:transform 0.2s ease; color:var(--accent-primary);"></i>
-              <i class="fa-solid fa-calendar-day" style="color:var(--accent-primary);"></i>
-              <strong style="font-size:14px; color:var(--text-primary);">${dateStr}</strong>
+            <div style="display:flex; align-items:center; gap:12px;">
+              <div class="date-circle-toggle">
+                <i class="fa-solid fa-chevron-down cod-date-toggle-icon" style="transition:transform 0.25 ease; transform:rotate(-90deg);"></i>
+              </div>
+              <strong style="font-size:15px; font-weight:700; color:var(--text-primary); letter-spacing:0.3px;">${formattedDateLabel}</strong>
               <small style="color:var(--text-dim);">(${totalCount} รายการ)</small>
             </div>
             <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:12px;">
-              <span style="background:rgba(239,68,68,0.12); color:#f87171; border:1px solid rgba(239,68,68,0.3); padding:3px 10px; border-radius:12px; font-weight:600;">
+              <span style="background:rgba(239,68,68,0.12); color:#f87171; border:1px solid rgba(239,68,68,0.3); padding:4px 12px; border-radius:20px; font-weight:600;">
                 ค้างโอน: ${pendingCount}/${totalCount} order (₭${pendingAmount.toLocaleString()})
               </span>
-              <span style="background:rgba(16,185,129,0.12); color:#34d399; border:1px solid rgba(16,185,129,0.3); padding:3px 10px; border-radius:12px; font-weight:600;">
+              <span style="background:rgba(16,185,129,0.12); color:#34d399; border:1px solid rgba(16,185,129,0.3); padding:4px 12px; border-radius:20px; font-weight:600;">
                 กำไรวันนั้น: ₭${totalProfit.toLocaleString()}
               </span>
             </div>
@@ -223,12 +229,12 @@ export function renderCODTable(searchQuery = '', courierFilter = 'all', statusFi
       </tr>
     `;
 
-    // Order Rows for this date
+    // Order Rows for this date (Hidden/Collapsed by default)
     dateOrders.forEach(o => {
       const profit = (o.codAmount || 0) - (o.costAmount || 0);
 
       html += `
-        <tr class="cod-item-row" data-date-group="${dateStr}">
+        <tr class="cod-item-row hidden" data-date-group="${dateStr}">
           <td style="font-size:13px; font-weight:600; padding-left:24px;">${o.date}</td>
           <td>${courierBadges[o.courier] || o.courier}</td>
           <td>
@@ -267,33 +273,28 @@ export function renderCODTable(searchQuery = '', courierFilter = 'all', statusFi
 
   tbody.innerHTML = html;
 
-  // Attach Collapsible Group Header Toggle Event reliably
+  // Attach Collapsible Group Header Toggle Event
   tbody.querySelectorAll('.cod-date-group-header').forEach(headerRow => {
     headerRow.addEventListener('click', (e) => {
-      // Don't toggle if clicking an inner action button
+      // Don't toggle if clicking inner action buttons
       if (e.target.closest('button')) return;
 
       const dateStr = headerRow.dataset.date;
       const icon = headerRow.querySelector('.cod-date-toggle-icon');
       const itemRows = tbody.querySelectorAll(`.cod-item-row[data-date-group="${dateStr}"]`);
 
-      let willHide = false;
+      let isOpening = false;
       itemRows.forEach(row => {
-        if (!row.classList.contains('hidden')) {
-          willHide = true;
-        }
-      });
-
-      itemRows.forEach(row => {
-        if (willHide) {
-          row.classList.add('hidden');
-        } else {
+        if (row.classList.contains('hidden')) {
           row.classList.remove('hidden');
+          isOpening = true;
+        } else {
+          row.classList.add('hidden');
         }
       });
 
       if (icon) {
-        icon.style.transform = willHide ? 'rotate(-90deg)' : 'rotate(0deg)';
+        icon.style.transform = isOpening ? 'rotate(0deg)' : 'rotate(-90deg)';
       }
     });
   });
