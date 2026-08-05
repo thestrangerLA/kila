@@ -4,7 +4,7 @@ import { renderCharts } from './charts.js';
 import { exportToCSV, printFinancialReport, exportJSONBackup } from './export.js';
 import { renderStockView } from './stock.js';
 import { posManager } from './pos.js';
-import { renderCODView } from './cod.js';
+import { renderCODView, populateStockDropdownInCODModal } from './cod.js';
 
 // App Controller
 class App {
@@ -414,27 +414,69 @@ class App {
     });
 
     // 8b. COD Courier Tracking Events
+    const updateCODPricePreview = () => {
+      const sel = document.getElementById('codStockItemId');
+      const opt = sel?.options[sel.selectedIndex];
+      const qty = parseInt(document.getElementById('codQty')?.value, 10) || 1;
+
+      if (opt && opt.value) {
+        const costPrice = parseFloat(opt.dataset.cost) || 0;
+        const sellingPrice = parseFloat(opt.dataset.sell) || 0;
+
+        const totalCost = costPrice * qty;
+        const totalSell = sellingPrice * qty;
+        const totalProfit = totalSell - totalCost;
+
+        document.getElementById('lblCODCostPrice').textContent = `₭${totalCost.toLocaleString()}`;
+        document.getElementById('lblCODSellingPrice').textContent = `₭${totalSell.toLocaleString()}`;
+        document.getElementById('lblCODProfit').textContent = `₭${totalProfit.toLocaleString()}`;
+      } else {
+        document.getElementById('lblCODCostPrice').textContent = '₭0';
+        document.getElementById('lblCODSellingPrice').textContent = '₭0';
+        document.getElementById('lblCODProfit').textContent = '₭0';
+      }
+    };
+
     document.getElementById('btnOpenAddCODModal')?.addEventListener('click', () => {
       this.editingCODId = null;
       document.getElementById('codForm').reset();
+      populateStockDropdownInCODModal();
       document.getElementById('codModalTitle').innerHTML = '<i class="fa-solid fa-truck-fast"></i> บันทึกรายการ COD ขนส่ง';
       document.getElementById('codDate').value = new Date().toISOString().split('T')[0];
+      updateCODPricePreview();
       this.openModal('codModal');
     });
+
+    document.getElementById('codStockItemId')?.addEventListener('change', updateCODPricePreview);
+    document.getElementById('codQty')?.addEventListener('input', updateCODPricePreview);
 
     document.getElementById('btnCloseCODModal')?.addEventListener('click', () => this.closeModal('codModal'));
     document.getElementById('btnCancelCODModal')?.addEventListener('click', () => this.closeModal('codModal'));
 
     document.getElementById('codForm')?.addEventListener('submit', (e) => {
       e.preventDefault();
+      const sel = document.getElementById('codStockItemId');
+      const opt = sel?.options[sel.selectedIndex];
+      const qty = parseInt(document.getElementById('codQty').value, 10) || 1;
+
+      const stockItemId = sel?.value || '';
+      const productName = opt?.dataset?.name || 'ชุดฟุตบอล';
+      const costPrice = parseFloat(opt?.dataset?.cost) || 0;
+      const sellingPrice = parseFloat(opt?.dataset?.sell) || 0;
+
+      const totalCost = costPrice * qty;
+      const totalSell = sellingPrice * qty;
+
       const codData = {
         courier: document.getElementById('codCourier').value,
         date: document.getElementById('codDate').value,
         trackingNo: document.getElementById('codTrackingNo').value,
         customerName: document.getElementById('codCustomerName').value,
-        codAmount: parseFloat(document.getElementById('codAmount').value) || 0,
-        costAmount: parseFloat(document.getElementById('codCostAmount').value) || 0,
-        shippingFee: parseFloat(document.getElementById('codShippingFee').value) || 0,
+        stockItemId,
+        productName,
+        qty,
+        codAmount: totalSell,
+        costAmount: totalCost,
         status: document.getElementById('codStatus').value,
         note: document.getElementById('codNote').value
       };
@@ -816,15 +858,19 @@ class App {
     this.editingCODId = id;
     document.getElementById('codModalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> แก้ไขรายการ COD';
 
+    populateStockDropdownInCODModal();
+
     document.getElementById('codCourier').value = order.courier;
     document.getElementById('codDate').value = order.date;
     document.getElementById('codTrackingNo').value = order.trackingNo;
     document.getElementById('codCustomerName').value = order.customerName || '';
-    document.getElementById('codAmount').value = order.codAmount;
-    document.getElementById('codCostAmount').value = order.costAmount || 0;
-    document.getElementById('codShippingFee').value = order.shippingFee || 0;
+    document.getElementById('codStockItemId').value = order.stockItemId || '';
+    document.getElementById('codQty').value = order.qty || 1;
     document.getElementById('codStatus').value = order.status;
     document.getElementById('codNote').value = order.note || '';
+
+    // Trigger price preview calculation
+    document.getElementById('codStockItemId').dispatchEvent(new Event('change'));
 
     this.openModal('codModal');
   }

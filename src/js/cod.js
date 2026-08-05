@@ -4,6 +4,30 @@ import { store } from './store.js';
 export function renderCODView(searchQuery = '', courierFilter = 'all', statusFilter = 'all') {
   renderCODCourierCards();
   renderCODTable(searchQuery, courierFilter, statusFilter);
+  populateStockDropdownInCODModal();
+}
+
+// Populate Stock Items in COD Modal Dropdown
+export function populateStockDropdownInCODModal() {
+  const sel = document.getElementById('codStockItemId');
+  if (!sel) return;
+
+  const current = sel.value;
+  sel.innerHTML = '<option value="">-- เลือกสินค้าจากสต็อก --</option>';
+
+  store.inventory.forEach(item => {
+    const opt = document.createElement('option');
+    opt.value = item.id;
+    opt.dataset.cost = item.costPrice || 0;
+    opt.dataset.sell = item.sellingPrice || 0;
+    opt.dataset.name = `${item.name} (${item.size})`;
+    opt.textContent = `[${item.code || 'STK'}] ${item.name} (${item.size}) — ทุน ₭${(item.costPrice || 0).toLocaleString()} / ขาย ₭${(item.sellingPrice || 0).toLocaleString()} (สต็อก: ${item.stockQty})`;
+    sel.appendChild(opt);
+  });
+
+  if (current && sel.querySelector(`option[value="${current}"]`)) {
+    sel.value = current;
+  }
 }
 
 // 1. Render Courier Summary Cards (ANS, HAL, MX) matching user's screenshot layout
@@ -72,7 +96,7 @@ export function renderCODTable(searchQuery = '', courierFilter = 'all', statusFi
   };
 
   tbody.innerHTML = list.map(o => {
-    const profit = o.codAmount - o.costAmount - o.shippingFee;
+    const profit = (o.codAmount || 0) - (o.costAmount || 0);
 
     return `
       <tr>
@@ -82,9 +106,12 @@ export function renderCODTable(searchQuery = '', courierFilter = 'all', statusFi
           <strong style="color:var(--text-primary);">${o.trackingNo || '-'}</strong>
           <div style="font-size:11px; color:var(--text-dim);">${o.customerName || '-'}</div>
         </td>
+        <td>
+          <div style="font-weight:600; color:var(--text-primary);">${o.productName || 'ชุดฟุตบอล'}</div>
+          <small style="color:var(--text-dim);">จำนวน: ${o.qty || 1} ชุด</small>
+        </td>
         <td class="text-right" style="font-weight:700; color:var(--income-color);">₭${(o.codAmount || 0).toLocaleString()}</td>
         <td class="text-right" style="color:var(--amber-color);">₭${(o.costAmount || 0).toLocaleString()}</td>
-        <td class="text-right" style="color:var(--text-dim);">₭${(o.shippingFee || 0).toLocaleString()}</td>
         <td class="text-right" style="font-weight:700; color:${profit >= 0 ? 'var(--income-color)' : 'var(--expense-color)'}">
           ₭${profit.toLocaleString()}
         </td>

@@ -659,9 +659,9 @@
                   <th>วันที่</th>
                   <th>ขนส่ง</th>
                   <th>เลขพัสดุ / ลูกค้า</th>
-                  <th class="text-right">ยอด COD (₭)</th>
-                  <th class="text-right">ต้นทุนสินค้า (₭)</th>
-                  <th class="text-right">ค่าส่ง (₭)</th>
+                  <th>สินค้าที่ส่ง</th>
+                  <th class="text-right">ราคาขาย/COD (₭)</th>
+                  <th class="text-right">ต้นทุน (₭)</th>
                   <th class="text-right">กำไรสุทธิ (₭)</th>
                   <th>สถานะ</th>
                   <th class="text-center">จัดการ</th>
@@ -1228,18 +1228,33 @@
             </div>
           </div>
 
-          <div class="form-row grid-col-3">
+          <!-- Select Stock Product & Qty -->
+          <div class="form-row grid-col-2">
             <div class="form-group">
-              <label>ยอดเก็บเงินปลายทาง (COD ₭)</label>
-              <input type="number" id="codAmount" class="form-control" placeholder="0" min="0" required>
+              <label><i class="fa-solid fa-shirt"></i> เลือกชุดบอลจากสต็อก</label>
+              <select id="codStockItemId" class="form-control select-control" required>
+                <option value="">-- เลือกสินค้าจากสต็อก --</option>
+              </select>
             </div>
             <div class="form-group">
-              <label>ต้นทุนสินค้า (Cost ₭)</label>
-              <input type="number" id="codCostAmount" class="form-control" placeholder="0" min="0">
+              <label>จำนวนชุด (Qty)</label>
+              <input type="number" id="codQty" class="form-control" value="1" min="1" required>
             </div>
-            <div class="form-group">
-              <label>ค่าส่งพัสดุ (Ship Fee ₭)</label>
-              <input type="number" id="codShippingFee" class="form-control" placeholder="0" min="0">
+          </div>
+
+          <!-- Live Preview Box of Calculated Cost, Selling Price, and Profit -->
+          <div class="glass-card" style="padding:14px; margin-bottom:16px; background:rgba(15,23,42,0.6); border:1px dashed var(--border-color);">
+            <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:13px;">
+              <span style="color:var(--text-dim);">ต้นทุนสินค้ารวม (Cost):</span>
+              <strong id="lblCODCostPrice" class="text-amber">₭0</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:13px;">
+              <span style="color:var(--text-dim);">ราคาขายรวม / ยอด COD (Amount):</span>
+              <strong id="lblCODSellingPrice" class="text-emerald" style="font-size:15px;">₭0</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:13px; border-top:1px solid var(--border-color); padding-top:6px;">
+              <span style="color:var(--text-dim);">กำไรสุทธิรวม (Net Profit):</span>
+              <strong id="lblCODProfit" style="font-size:15px; color:#34d399;">₭0</strong>
             </div>
           </div>
 
