@@ -9,6 +9,11 @@ import { renderCODView, populateStockDropdownInCODModal } from './cod.js';
 // App Controller
 class App {
   constructor() {
+    // Auto-detect current month & year from calendar
+    const now = new Date();
+    const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
+    const currentYear = String(now.getFullYear());
+
     this.currentFilterType = 'all';
     this.currentCategory = 'all';
     this.searchQuery = '';
@@ -20,21 +25,16 @@ class App {
     this.stockStatusFilter = 'all';
     this.editingStockId = null;
 
-    // COD Tracking State & Filters (Default to Current Calendar Month & Year)
+    // COD Tracking State & Filters (Default to 'all' so past pending COD orders like July show up)
     this.codSearchQuery = '';
     this.codCourierFilter = 'all';
     this.codStatusFilter = 'all';
-    this.codMonth = currentMonth;
-    this.codYear = currentYear;
+    this.codMonth = 'all';
+    this.codYear = 'all';
     this.codDate = 'all';
     this.editingCODId = null;
 
-    // Auto-detect current month & year from calendar
-    const now = new Date();
-    const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
-    const currentYear = String(now.getFullYear());
-
-    // Date Filters (Default to Current Calendar Month & Year)
+    // Date Filters for Dashboard & Transactions (Default to Current Calendar Month & Year)
     this.dashMonth = currentMonth;
     this.dashYear = currentYear;
     this.dashDateFrom = '';
