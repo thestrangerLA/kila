@@ -40,9 +40,19 @@
           <span>เงินในบัญชีจริง: <strong id="lblActualBalance">₭0</strong></span>
         </button>
 
-        <button id="btnExportCSV" class="btn btn-secondary" title="ส่งออกข้อมูลเป็น CSV">
+        <button id="btnBackupPC" class="btn btn-secondary" title="สำรองข้อมูลทั้งหมดลงเครื่อง PC (Save Backup)">
+          <i class="fa-solid fa-hard-drive"></i>
+          <span>สำรองลง PC</span>
+        </button>
+
+        <button id="btnRestorePC" class="btn btn-outline" title="ดึงไฟล์สำรองข้อมูลจาก PC เข้าสู่ระบบ (Restore Backup)">
+          <i class="fa-solid fa-file-import"></i>
+          <span>ดึงไฟล์ PC</span>
+        </button>
+        <input type="file" id="fileRestoreJSON" accept=".json" style="display:none;">
+
+        <button id="btnExportCSV" class="btn btn-icon" title="ส่งออกข้อมูลเป็น CSV">
           <i class="fa-solid fa-file-csv"></i>
-          <span>ส่งออก CSV</span>
         </button>
 
         <button id="btnClearAllData" class="btn btn-icon" title="ล้างข้อมูลทั้งหมด" style="color:var(--expense-color);">

@@ -96,6 +96,32 @@ class BizStore {
     this.notify();
   }
 
+  // Export full store state to JSON object for PC Backup
+  exportAllDataJSON() {
+    return {
+      version: 1,
+      appName: 'KilaBizAccount',
+      exportDate: new Date().toISOString(),
+      initialBalance: this.initialBalance,
+      actualBalance: this.actualBalance,
+      transactions: this.transactions,
+      inventory: this.inventory
+    };
+  }
+
+  // Import full store state from JSON object
+  importAllDataJSON(data) {
+    if (!data || typeof data !== 'object') return false;
+    if (typeof data.initialBalance === 'number') this.initialBalance = data.initialBalance;
+    if (typeof data.actualBalance === 'number') this.actualBalance = data.actualBalance;
+    if (Array.isArray(data.transactions)) this.transactions = data.transactions;
+    if (Array.isArray(data.inventory)) this.inventory = data.inventory;
+
+    this.saveToStorage();
+    this.notify();
+    return true;
+  }
+
   setInitialBalance(amount) {
     this.initialBalance = Math.max(0, parseFloat(amount) || 0);
     this.saveToStorage();

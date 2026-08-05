@@ -1,7 +1,7 @@
 import confetti from 'canvas-confetti';
 import { store } from './store.js';
 import { renderCharts } from './charts.js';
-import { exportToCSV, printFinancialReport } from './export.js';
+import { exportToCSV, printFinancialReport, exportJSONBackup } from './export.js';
 import { renderStockView } from './stock.js';
 import { posManager } from './pos.js';
 
@@ -106,7 +106,7 @@ class App {
     });
 
 
-    // 5. CSV Export Button
+    // 5. CSV & PC Backup / Restore Buttons
     document.getElementById('btnExportCSV')?.addEventListener('click', () => {
       const filtered = store.getFilteredTransactions({
         search: this.searchQuery,
@@ -114,6 +114,41 @@ class App {
         category: this.currentCategory
       });
       exportToCSV(filtered);
+    });
+
+    // Save Backup JSON to PC
+    document.getElementById('btnBackupPC')?.addEventListener('click', () => {
+      const backupData = store.exportAllDataJSON();
+      exportJSONBackup(backupData);
+      this.showToast('สำรองข้อมูลทั้งหมดลงเครื่อง PC เรียบร้อยแล้ว!');
+    });
+
+    // Restore Backup JSON from PC
+    const fileInput = document.getElementById('fileRestoreJSON');
+    document.getElementById('btnRestorePC')?.addEventListener('click', () => {
+      fileInput?.click();
+    });
+
+    fileInput?.addEventListener('change', (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const data = JSON.parse(event.target.result);
+          if (store.importAllDataJSON(data)) {
+            confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
+            this.showToast('นำเข้าข้อมูลสำรองจากไฟล์ PC สำเร็จเรียบร้อย!');
+          } else {
+            alert('รูปแบบไฟล์สำรองไม่ถูกต้อง');
+          }
+        } catch (err) {
+          alert('เกิดข้อผิดพลาดในการอ่านไฟล์สำรอง: ' + err.message);
+        }
+        fileInput.value = '';
+      };
+      reader.readAsText(file);
     });
 
     // 6. Transaction Modal & Form
