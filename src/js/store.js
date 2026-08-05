@@ -419,7 +419,11 @@ class BizStore {
     });
     const totalOutflow = totalExpense + totalCost;
     const netProfit = totalIncome - totalOutflow;
-    const cashBalance = this.initialBalance + totalIncome - (totalExpense + totalCost);
+
+    // Cash Balance is always cumulative all-time total (includes carryover from previous months)
+    const fullSummary = this.getSummary();
+    const cashBalance = fullSummary.cashBalance;
+
     const profitMargin = totalIncome > 0 ? (netProfit / totalIncome) * 100 : 0;
     return { totalIncome, totalExpense, totalCost, totalOutflow, netProfit, cashBalance, profitMargin, initialBalance: this.initialBalance, txCount: txList.length };
   }
