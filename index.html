@@ -1237,92 +1237,100 @@
       </div>
     </div>
 
-    <!-- Modal: บันทึกรายการ COD ขนส่ง -->
+    <!-- Modal: บันทึกรายการ COD ขนส่ง (เลย์เอาต์แนวนอน) -->
     <div id="codModal" class="modal-overlay hidden">
-      <div class="modal-card glass-card modal-md">
+      <div class="modal-card glass-card modal-lg">
         <div class="modal-header">
           <h3 id="codModalTitle"><i class="fa-solid fa-truck-fast"></i> บันทึกรายการ COD ขนส่ง</h3>
           <button id="btnCloseCODModal" class="btn-close">&times;</button>
         </div>
         <form id="codForm">
-          <div class="form-row grid-col-2">
-            <div class="form-group">
-              <label>บริษัทขนส่ง (Courier)</label>
-              <select id="codCourier" class="form-control select-control" required>
-                <option value="ANS">ANS Express</option>
-                <option value="HAL">HAL Express</option>
-                <option value="MX">MX Express</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>วันที่ส่งพัสดุ</label>
-              <input type="date" id="codDate" class="form-control" required>
-            </div>
-          </div>
+          <div class="cod-modal-horizontal-grid">
+            <!-- ฝั่งซ้าย: เลือกสินค้าจากสต็อก (POS Style Cards Grid) -->
+            <div class="cod-modal-left-col">
+              <div class="form-group">
+                <label style="font-weight:600; color:var(--text-primary);"><i class="fa-solid fa-shirt" style="color:var(--accent-primary);"></i> เลือกชุดบอลจากสต็อก</label>
+                <div class="input-with-icon margin-bottom-xs" style="margin-bottom:8px;">
+                  <i class="fa-solid fa-magnifying-glass"></i>
+                  <input type="text" id="codStockSearch" placeholder="พิมพ์ค้นหาชื่อชุดบอล, ทีม, หรือไซส์..." class="form-control">
+                </div>
 
-          <div class="form-row grid-col-2">
-            <div class="form-group">
-              <label>เลขติดตามพัสดุ (Tracking No.)</label>
-              <input type="text" id="codTrackingNo" class="form-control" placeholder="เช่น ANS-99882" required>
-            </div>
-            <div class="form-group">
-              <label>ชื่อลูกค้า / เบอร์โทรศัพท์</label>
-              <input type="text" id="codCustomerName" class="form-control" placeholder="เช่น ท้าว สมชาย 020-XXXXXXX">
-            </div>
-          </div>
+                <!-- Product Visual Cards Selector Container (Grid 2 Columns) -->
+                <div id="codProductSelectorGrid" class="cod-prod-selector-grid" style="max-height:300px; overflow-y:auto; overflow-x:hidden; display:grid; grid-template-columns:repeat(2, 1fr); gap:8px; padding:4px;">
+                  <!-- Rendered dynamically by cod.js -->
+                </div>
 
-          <!-- Select Stock Product & Qty -->
-          <div class="form-group">
-            <label><i class="fa-solid fa-shirt"></i> เลือกชุดบอลจากสต็อก (พิมพ์ค้นหา & แสดงรูปเหมือน POS)</label>
-            <div class="input-with-icon margin-bottom-xs" style="margin-bottom:8px;">
-              <i class="fa-solid fa-magnifying-glass"></i>
-              <input type="text" id="codStockSearch" placeholder="พิมพ์ค้นหาชื่อชุดบอล, ทีม, หรือไซส์..." class="form-control">
+                <!-- Hidden/Fallback Select Control -->
+                <select id="codStockItemId" class="form-control select-control hidden" style="display:none;" required>
+                  <option value="">-- เลือกสินค้าจากสต็อก --</option>
+                </select>
+              </div>
             </div>
 
-            <!-- Product Visual Cards Selector Container (POS Style) -->
-            <div id="codProductSelectorGrid" class="cod-prod-selector-grid" style="max-height:150px; overflow-y:auto; overflow-x:hidden; display:flex; flex-direction:column; gap:6px; margin-bottom:10px; padding:2px;">
-              <!-- Rendered dynamically by cod.js -->
+            <!-- ฝั่งขวา: กรอกข้อมูลขนส่ง + สรุปยอด -->
+            <div class="cod-modal-right-col">
+              <div class="form-row grid-col-2">
+                <div class="form-group">
+                  <label>บริษัทขนส่ง (Courier)</label>
+                  <select id="codCourier" class="form-control select-control" required>
+                    <option value="ANS">ANS Express</option>
+                    <option value="HAL">HAL Express</option>
+                    <option value="MX">MX Express</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>วันที่ส่งพัสดุ</label>
+                  <input type="date" id="codDate" class="form-control" required>
+                </div>
+              </div>
+
+              <div class="form-row grid-col-2">
+                <div class="form-group">
+                  <label>เลขติดตามพัสดุ (Tracking No.)</label>
+                  <input type="text" id="codTrackingNo" class="form-control" placeholder="เช่น ANS-99882" required>
+                </div>
+                <div class="form-group">
+                  <label>ชื่อลูกค้า / เบอร์โทรศัพท์</label>
+                  <input type="text" id="codCustomerName" class="form-control" placeholder="เช่น ท้าว สมชาย 020-XXXXXXX">
+                </div>
+              </div>
+
+              <div class="form-row grid-col-2">
+                <div class="form-group">
+                  <label>จำนวนชุด (Qty)</label>
+                  <input type="number" id="codQty" class="form-control" value="1" min="1" required>
+                </div>
+                <div class="form-group">
+                  <label>สถานะการโอนเงิน (Status)</label>
+                  <select id="codStatus" class="form-control select-control">
+                    <option value="pending">⏳ ค้างโอน COD</option>
+                    <option value="completed">✅ โอนเงินแล้ว</option>
+                    <option value="returned">↩️ พัสดุตีกลับ</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Live Preview Box of Calculated Cost, Selling Price, and Profit -->
+              <div class="glass-card" style="padding:12px 14px; margin-bottom:14px; background:rgba(15,23,42,0.6); border:1px dashed var(--border-color);">
+                <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:12px;">
+                  <span style="color:var(--text-dim);">ต้นทุนสินค้ารวม (Cost):</span>
+                  <strong id="lblCODCostPrice" class="text-amber">₭0</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:12px;">
+                  <span style="color:var(--text-dim);">ราคาขายรวม / ยอด COD (Amount):</span>
+                  <strong id="lblCODSellingPrice" class="text-emerald" style="font-size:14px;">₭0</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:12px; border-top:1px solid var(--border-color); padding-top:4px;">
+                  <span style="color:var(--text-dim);">กำไรสุทธิรวม (Net Profit):</span>
+                  <strong id="lblCODProfit" style="font-size:14px; color:#34d399;">₭0</strong>
+                </div>
+              </div>
+
+              <div class="modal-footer" style="margin-top:0;">
+                <button type="button" id="btnCancelCODModal" class="btn btn-secondary">ยกเลิก</button>
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> บันทึกข้อมูล</button>
+              </div>
             </div>
-
-            <!-- Hidden/Fallback Select Control -->
-            <select id="codStockItemId" class="form-control select-control hidden" style="display:none;" required>
-              <option value="">-- เลือกสินค้าจากสต็อก --</option>
-            </select>
-          </div>
-
-          <div class="form-group margin-bottom-md">
-            <label>จำนวนชุด (Qty)</label>
-            <input type="number" id="codQty" class="form-control" value="1" min="1" required>
-          </div>
-
-          <!-- Live Preview Box of Calculated Cost, Selling Price, and Profit -->
-          <div class="glass-card" style="padding:14px; margin-bottom:16px; background:rgba(15,23,42,0.6); border:1px dashed var(--border-color);">
-            <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:13px;">
-              <span style="color:var(--text-dim);">ต้นทุนสินค้ารวม (Cost):</span>
-              <strong id="lblCODCostPrice" class="text-amber">₭0</strong>
-            </div>
-            <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:13px;">
-              <span style="color:var(--text-dim);">ราคาขายรวม / ยอด COD (Amount):</span>
-              <strong id="lblCODSellingPrice" class="text-emerald" style="font-size:15px;">₭0</strong>
-            </div>
-            <div style="display:flex; justify-content:space-between; font-size:13px; border-top:1px solid var(--border-color); padding-top:6px;">
-              <span style="color:var(--text-dim);">กำไรสุทธิรวม (Net Profit):</span>
-              <strong id="lblCODProfit" style="font-size:15px; color:#34d399;">₭0</strong>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label>สถานะการโอนเงิน (Status)</label>
-            <select id="codStatus" class="form-control select-control">
-              <option value="pending">⏳ ค้างโอน COD</option>
-              <option value="completed">✅ โอนเงินแล้ว</option>
-              <option value="returned">↩️ พัสดุตีกลับ</option>
-            </select>
-          </div>
-
-          <div class="modal-footer">
-            <button type="button" id="btnCancelCODModal" class="btn btn-secondary">ยกเลิก</button>
-            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> บันทึกข้อมูล</button>
           </div>
         </form>
       </div>
