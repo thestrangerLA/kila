@@ -1271,38 +1271,47 @@
             </div>
           </div>
 
-          <!-- Select Stock Product & Qty -->
-          <div class="form-group" style="margin-bottom:10px;">
-            <label style="font-weight:600; color:var(--text-primary);"><i class="fa-solid fa-shirt" style="color:var(--accent-primary);"></i> เลือกชุดบอลจากสต็อก</label>
+          <!-- Select Stock Product & Multi-Item Cart -->
+          <div class="form-group" style="margin-bottom:8px;">
+            <label style="font-weight:600; color:var(--text-primary);"><i class="fa-solid fa-shirt" style="color:var(--accent-primary);"></i> เลือกชุดบอลลงพัสดุ (คลิกเลือกได้หลายรายการ)</label>
             <div class="input-with-icon margin-bottom-xs" style="margin-bottom:6px;">
               <i class="fa-solid fa-magnifying-glass"></i>
               <input type="text" id="codStockSearch" placeholder="พิมพ์ค้นหาชื่อชุดบอล, ทีม, หรือไซส์..." class="form-control">
             </div>
 
-            <!-- Product Visual Cards Selector Container (Single Column Compact List) -->
-            <div id="codProductSelectorGrid" class="cod-prod-selector-grid" style="max-height:135px; overflow-y:auto; overflow-x:hidden; display:flex; flex-direction:column; gap:6px; margin-bottom:8px; padding:2px;">
+            <!-- Product Visual Cards Selector Container -->
+            <div id="codProductSelectorGrid" class="cod-prod-selector-grid" style="max-height:120px; overflow-y:auto; overflow-x:hidden; display:flex; flex-direction:column; gap:5px; margin-bottom:8px; padding:2px;">
               <!-- Rendered dynamically by cod.js -->
             </div>
 
             <!-- Hidden/Fallback Select Control -->
-            <select id="codStockItemId" class="form-control select-control hidden" style="display:none;" required>
+            <select id="codStockItemId" class="form-control select-control hidden" style="display:none;">
               <option value="">-- เลือกสินค้าจากสต็อก --</option>
             </select>
           </div>
 
-          <div class="form-row grid-col-2">
-            <div class="form-group" style="margin-bottom:10px;">
-              <label>จำนวนชุด (Qty)</label>
-              <input type="number" id="codQty" class="form-control" value="1" min="1" required>
+          <!-- Multi-Product Cart List in COD Modal -->
+          <div class="form-group" style="margin-bottom:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <label style="font-size:12px; font-weight:600; color:var(--accent-primary); margin:0;">
+                <i class="fa-solid fa-basket-shopping"></i> สินค้าที่เลือกในพัสดุนี้ (<span id="codSelectedItemsCount">0</span> รายการ)
+              </label>
+              <button type="button" id="btnClearCODModalCart" style="background:transparent; border:none; color:var(--expense-color); font-size:11px; cursor:pointer;" class="hidden">
+                <i class="fa-solid fa-trash-can"></i> ล้างรายการ
+              </button>
             </div>
-            <div class="form-group" style="margin-bottom:10px;">
-              <label>สถานะการโอนเงิน (Status)</label>
-              <select id="codStatus" class="form-control select-control">
-                <option value="pending">⏳ ค้างโอน COD</option>
-                <option value="completed">✅ โอนเงินแล้ว</option>
-                <option value="returned">↩️ พัสดุตีกลับ</option>
-              </select>
+            <div id="codSelectedItemsList" class="glass-card" style="max-height:110px; overflow-y:auto; padding:6px 10px; background:rgba(15,23,42,0.8); border:1px solid var(--border-color); font-size:12px;">
+              <div style="color:var(--text-dim); text-align:center; padding:10px;">กรุณาคลิกเลือกชุดบอลจากรายการด้านบนเพื่อใส่พัสดุ</div>
             </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom:10px;">
+            <label>สถานะการโอนเงิน (Status)</label>
+            <select id="codStatus" class="form-control select-control">
+              <option value="pending">⏳ ค้างโอน COD</option>
+              <option value="completed">✅ โอนเงินแล้ว</option>
+              <option value="returned">↩️ พัสดุตีกลับ</option>
+            </select>
           </div>
 
           <!-- Live Preview Box of Calculated Cost, Selling Price, and Profit -->

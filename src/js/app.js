@@ -4,7 +4,7 @@ import { renderCharts } from './charts.js';
 import { exportToCSV, printFinancialReport, exportJSONBackup } from './export.js';
 import { renderStockView } from './stock.js';
 import { posManager } from './pos.js';
-import { renderCODView, populateStockDropdownInCODModal } from './cod.js';
+import { renderCODView, populateStockDropdownInCODModal, clearCODModalCart, setCODModalCart, codModalCart } from './cod.js';
 
 // App Controller
 class App {
@@ -446,46 +446,52 @@ class App {
     document.getElementById('btnOpenAddCODModal')?.addEventListener('click', () => {
       this.editingCODId = null;
       document.getElementById('codForm').reset();
+      clearCODModalCart();
       const s = document.getElementById('codStockSearch'); if (s) s.value = '';
       populateStockDropdownInCODModal();
       document.getElementById('codModalTitle').innerHTML = '<i class="fa-solid fa-truck-fast"></i> บันทึกรายการ COD ขนส่ง';
       document.getElementById('codDate').value = new Date().toISOString().split('T')[0];
-      updateCODPricePreview();
       this.openModal('codModal');
+    });
+
+    document.getElementById('btnClearCODModalCart')?.addEventListener('click', () => {
+      clearCODModalCart();
     });
 
     document.getElementById('codStockSearch')?.addEventListener('input', (e) => {
       populateStockDropdownInCODModal(e.target.value);
     });
 
-    document.getElementById('codStockItemId')?.addEventListener('change', updateCODPricePreview);
-    document.getElementById('codQty')?.addEventListener('input', updateCODPricePreview);
-
     document.getElementById('btnCloseCODModal')?.addEventListener('click', () => this.closeModal('codModal'));
     document.getElementById('btnCancelCODModal')?.addEventListener('click', () => this.closeModal('codModal'));
 
     document.getElementById('codForm')?.addEventListener('submit', (e) => {
       e.preventDefault();
-      const sel = document.getElementById('codStockItemId');
-      const opt = sel?.options[sel.selectedIndex];
-      const qty = parseInt(document.getElementById('codQty').value, 10) || 1;
+      if (codModalCart.length === 0) {
+        alert('กรุณาคลิกเลือกชุดบอลอย่างน้อย 1 รายการลงพัสดุก่อนบันทึก');
+        return;
+      }
 
-      const stockItemId = sel?.value || '';
-      const productName = opt?.dataset?.name || 'ชุดฟุตบอล';
-      const costPrice = parseFloat(opt?.dataset?.cost) || 0;
-      const sellingPrice = parseFloat(opt?.dataset?.sell) || 0;
+      let totalCost = 0;
+      let totalSell = 0;
+      let totalQty = 0;
+      const productSummaries = [];
 
-      const totalCost = costPrice * qty;
-      const totalSell = sellingPrice * qty;
+      codModalCart.forEach(item => {
+        totalCost += (item.costPrice || 0) * item.qty;
+        totalSell += (item.sellingPrice || 0) * item.qty;
+        totalQty += item.qty;
+        productSummaries.push(`${item.name} (${item.size}) x${item.qty}`);
+      });
 
       const codData = {
         courier: document.getElementById('codCourier').value,
         date: document.getElementById('codDate').value,
         trackingNo: document.getElementById('codTrackingNo').value,
         customerName: document.getElementById('codCustomerName').value,
-        stockItemId,
-        productName,
-        qty,
+        items: [...codModalCart],
+        productName: productSummaries.join(', '),
+        qty: totalQty,
         codAmount: totalSell,
         costAmount: totalCost,
         status: document.getElementById('codStatus').value,
@@ -928,19 +934,15 @@ class App {
     document.getElementById('codModalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> แก้ไขรายการ COD';
 
     const s = document.getElementById('codStockSearch'); if (s) s.value = '';
+    setCODModalCart(order.items || []);
     populateStockDropdownInCODModal();
 
     document.getElementById('codCourier').value = order.courier;
     document.getElementById('codDate').value = order.date;
     document.getElementById('codTrackingNo').value = order.trackingNo;
     document.getElementById('codCustomerName').value = order.customerName || '';
-    document.getElementById('codStockItemId').value = order.stockItemId || '';
-    document.getElementById('codQty').value = order.qty || 1;
     document.getElementById('codStatus').value = order.status;
     const noteEl = document.getElementById('codNote'); if (noteEl) noteEl.value = order.note || '';
-
-    // Trigger price preview calculation
-    document.getElementById('codStockItemId').dispatchEvent(new Event('change'));
 
     this.openModal('codModal');
   }

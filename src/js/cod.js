@@ -1,6 +1,9 @@
 // COD (Cash On Delivery) Courier Management Module (ANS, HAL, MX)
 import { store } from './store.js';
 
+// Transient COD Modal Cart for Multi-Product Selection
+export let codModalCart = [];
+
 export function renderCODView(searchQuery = '', courierFilter = 'all', statusFilter = 'all', monthFilter = 'all', yearFilter = 'all', dateFilter = 'all') {
   renderCODCourierCards(monthFilter, yearFilter);
   populateCODDateDropdown(monthFilter, yearFilter);
@@ -8,14 +11,144 @@ export function renderCODView(searchQuery = '', courierFilter = 'all', statusFil
   populateStockDropdownInCODModal();
 }
 
+// Multi-Product Selection Cart Methods inside COD Modal
+export function setCODModalCart(items = []) {
+  codModalCart = [...items];
+  renderCODModalCart();
+}
+
+export function clearCODModalCart() {
+  codModalCart = [];
+  renderCODModalCart();
+}
+
+export function addCODItemToCart(item) {
+  const existing = codModalCart.find(c => c.id === item.id);
+  if (existing) {
+    existing.qty += 1;
+  } else {
+    codModalCart.push({
+      id: item.id,
+      code: item.code || 'STK',
+      name: item.name || 'ชุดฟุตบอล',
+      size: item.size || 'M',
+      team: item.team || '',
+      costPrice: parseFloat(item.costPrice) || 0,
+      sellingPrice: parseFloat(item.sellingPrice) || 0,
+      qty: 1
+    });
+  }
+  renderCODModalCart();
+}
+
+export function updateCODItemCartQty(itemId, newQty) {
+  const item = codModalCart.find(c => c.id === itemId);
+  if (!item) return;
+
+  if (newQty <= 0) {
+    codModalCart = codModalCart.filter(c => c.id !== itemId);
+  } else {
+    item.qty = newQty;
+  }
+  renderCODModalCart();
+}
+
+export function removeCODItemFromCart(itemId) {
+  codModalCart = codModalCart.filter(c => c.id !== itemId);
+  renderCODModalCart();
+}
+
+export function renderCODModalCart() {
+  const container = document.getElementById('codSelectedItemsList');
+  const countEl = document.getElementById('codSelectedItemsCount');
+  const clearBtn = document.getElementById('btnClearCODModalCart');
+  if (!container) return;
+
+  if (countEl) countEl.textContent = codModalCart.length;
+  if (clearBtn) {
+    if (codModalCart.length > 0) clearBtn.classList.remove('hidden');
+    else clearBtn.classList.add('hidden');
+  }
+
+  let totalCost = 0;
+  let totalSell = 0;
+  let totalQty = 0;
+
+  if (codModalCart.length === 0) {
+    container.innerHTML = '<div style="color:var(--text-dim); text-align:center; padding:10px;"><i class="fa-solid fa-hand-pointer"></i> คลิกเลือกชุดบอลจากรายการด้านบนลงพัสดุนี้ได้เลย</div>';
+  } else {
+    container.innerHTML = codModalCart.map(item => {
+      const itemCostTotal = (item.costPrice || 0) * item.qty;
+      const itemSellTotal = (item.sellingPrice || 0) * item.qty;
+      totalCost += itemCostTotal;
+      totalSell += itemSellTotal;
+      totalQty += item.qty;
+
+      return `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px dashed var(--border-color); gap:8px;">
+          <div style="flex:1; min-width:0;">
+            <div style="font-weight:600; color:var(--text-primary); text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">
+              ${item.name} (${item.size})
+            </div>
+            <div style="font-size:10px; color:var(--text-dim);">
+              ทุน ₭${(item.costPrice || 0).toLocaleString()} | ขาย ₭${(item.sellingPrice || 0).toLocaleString()}
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+            <div style="display:flex; align-items:center; border:1px solid var(--border-color); border-radius:4px; overflow:hidden;">
+              <button type="button" class="btn-cod-cart-minus" data-id="${item.id}" style="background:rgba(255,255,255,0.08); border:none; color:var(--text-primary); padding:2px 6px; cursor:pointer;">-</button>
+              <span style="padding:2px 8px; font-weight:700; font-size:12px;">${item.qty}</span>
+              <button type="button" class="btn-cod-cart-plus" data-id="${item.id}" style="background:rgba(255,255,255,0.08); border:none; color:var(--text-primary); padding:2px 6px; cursor:pointer;">+</button>
+            </div>
+            <strong style="color:var(--income-color); font-size:12px; min-width:60px; text-align:right;">₭${itemSellTotal.toLocaleString()}</strong>
+            <button type="button" class="btn-cod-cart-del" data-id="${item.id}" style="background:transparent; border:none; color:var(--expense-color); cursor:pointer; padding:2px 4px;" title="ลบออก">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Attach Qty & Delete Listeners in Modal Cart
+    container.querySelectorAll('.btn-cod-cart-minus').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.id;
+        const current = codModalCart.find(c => c.id === id);
+        if (current) updateCODItemCartQty(id, current.qty - 1);
+      });
+    });
+
+    container.querySelectorAll('.btn-cod-cart-plus').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.id;
+        const current = codModalCart.find(c => c.id === id);
+        if (current) updateCODItemCartQty(id, current.qty + 1);
+      });
+    });
+
+    container.querySelectorAll('.btn-cod-cart-del').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.id;
+        removeCODItemFromCart(id);
+      });
+    });
+  }
+
+  // Update Live Preview Totals in Modal
+  const totalProfit = totalSell - totalCost;
+  const lblCost = document.getElementById('lblCODCostPrice');
+  const lblSell = document.getElementById('lblCODSellingPrice');
+  const lblProfit = document.getElementById('lblCODProfit');
+
+  if (lblCost) lblCost.textContent = `₭${totalCost.toLocaleString()}`;
+  if (lblSell) lblSell.textContent = `₭${totalSell.toLocaleString()}`;
+  if (lblProfit) lblProfit.textContent = `₭${totalProfit.toLocaleString()}`;
+}
+
 // Populate Stock Items in COD Modal Visual Selector & Fallback Dropdown
 export function populateStockDropdownInCODModal(searchQuery = '') {
   const sel = document.getElementById('codStockItemId');
   const grid = document.getElementById('codProductSelectorGrid');
-  if (!sel) return;
-
-  const currentSelectedId = sel.value;
-  sel.innerHTML = '<option value="">-- เลือกสินค้าจากสต็อก --</option>';
 
   const items = store.getFilteredInventory({
     search: searchQuery,
@@ -23,32 +156,38 @@ export function populateStockDropdownInCODModal(searchQuery = '') {
     status: 'all'
   });
 
-  items.forEach(item => {
-    const opt = document.createElement('option');
-    opt.value = item.id;
-    opt.dataset.cost = item.costPrice || 0;
-    opt.dataset.sell = item.sellingPrice || 0;
-    opt.dataset.name = `${item.name} (${item.size})`;
-    opt.textContent = `[${item.code || 'STK'}] ${item.name} (${item.size}) — ทุน ₭${(item.costPrice || 0).toLocaleString()} / ขาย ₭${(item.sellingPrice || 0).toLocaleString()} (สต็อก: ${item.stockQty})`;
-    sel.appendChild(opt);
-  });
+  if (sel) {
+    const currentSelectedId = sel.value;
+    sel.innerHTML = '<option value="">-- เลือกสินค้าจากสต็อก --</option>';
 
-  if (currentSelectedId && sel.querySelector(`option[value="${currentSelectedId}"]`)) {
-    sel.value = currentSelectedId;
+    items.forEach(item => {
+      const opt = document.createElement('option');
+      opt.value = item.id;
+      opt.dataset.cost = item.costPrice || 0;
+      opt.dataset.sell = item.sellingPrice || 0;
+      opt.dataset.name = `${item.name} (${item.size})`;
+      opt.textContent = `[${item.code || 'STK'}] ${item.name} (${item.size}) — ทุน ₭${(item.costPrice || 0).toLocaleString()} / ขาย ₭${(item.sellingPrice || 0).toLocaleString()} (สต็อก: ${item.stockQty})`;
+      sel.appendChild(opt);
+    });
+
+    if (currentSelectedId && sel.querySelector(`option[value="${currentSelectedId}"]`)) {
+      sel.value = currentSelectedId;
+    }
   }
 
   // Render Visual POS-Style Mini Cards in COD Modal
   if (grid) {
     if (items.length === 0) {
-      grid.innerHTML = '<div style="grid-column:span 2; padding:12px; text-align:center; color:var(--text-dim); font-size:12px;"><i class="fa-solid fa-box-open"></i> ไม่พบชุดบอลในสต็อก</div>';
+      grid.innerHTML = '<div style="padding:12px; text-align:center; color:var(--text-dim); font-size:12px;"><i class="fa-solid fa-box-open"></i> ไม่พบชุดบอลในสต็อก</div>';
       return;
     }
 
     grid.innerHTML = items.map(item => {
-      const isSelected = item.id === sel.value;
+      const inCart = codModalCart.find(c => c.id === item.id);
+      const cartQty = inCart ? inCart.qty : 0;
 
       return `
-        <div class="cod-prod-card-mini ${isSelected ? 'active' : ''}" data-id="${item.id}" data-cost="${item.costPrice}" data-sell="${item.sellingPrice}" data-name="${item.name} (${item.size})">
+        <div class="cod-prod-card-mini ${cartQty > 0 ? 'active' : ''}" data-id="${item.id}">
           <div class="cod-prod-mini-icon">
             <i class="fa-solid fa-shirt"></i>
           </div>
@@ -61,23 +200,23 @@ export function populateStockDropdownInCODModal(searchQuery = '') {
           </div>
           <div class="cod-prod-mini-price">
             <div>₭${(item.sellingPrice || 0).toLocaleString()}</div>
-            <small style="font-size:9px; color:var(--text-dim);">เหลือ ${item.stockQty}</small>
+            <small style="font-size:9px; color:${cartQty > 0 ? 'var(--income-color)' : 'var(--text-dim)'}; font-weight:${cartQty > 0 ? '700' : 'normal'};">
+              ${cartQty > 0 ? `เลือกแล้ว ${cartQty} ชุด` : `เหลือ ${item.stockQty}`}
+            </small>
           </div>
         </div>
       `;
     }).join('');
 
-    // Attach Click Event to Mini Cards
+    // Attach Click Event to Mini Cards -> Multi-Add to Cart
     grid.querySelectorAll('.cod-prod-card-mini').forEach(card => {
       card.addEventListener('click', () => {
         const id = card.dataset.id;
-        sel.value = id;
-
-        grid.querySelectorAll('.cod-prod-card-mini').forEach(c => c.classList.remove('active'));
-        card.classList.add('active');
-
-        // Trigger change event to update live price preview
-        sel.dispatchEvent(new Event('change'));
+        const stockItem = store.inventory.find(i => i.id === id);
+        if (stockItem) {
+          addCODItemToCart(stockItem);
+          populateStockDropdownInCODModal(searchQuery); // Re-render badges
+        }
       });
     });
   }
@@ -204,7 +343,7 @@ export function renderCODTable(searchQuery = '', courierFilter = 'all', statusFi
     const [yyyy, mm, dd] = dateStr.split('-');
     const formattedDateLabel = (dd && mm && yyyy) ? `วันที่ ${dd}/${mm}/${yyyy}` : `วันที่ ${dateStr}`;
 
-    // Date Header Card (Collapsed by default with circular dropdown button matching user screenshot)
+    // Date Header Card (Collapsed by default with circular dropdown button)
     html += `
       <tr class="cod-date-group-header" data-date="${dateStr}">
         <td colspan="9" style="padding:12px 16px; background:rgba(30,41,59,0.85); cursor:pointer; border-bottom:1px solid var(--glass-border); border-radius:12px; margin-bottom:6px;">
@@ -233,7 +372,13 @@ export function renderCODTable(searchQuery = '', courierFilter = 'all', statusFi
     dateOrders.forEach(o => {
       const profit = (o.codAmount || 0) - (o.costAmount || 0);
 
-      html += `
+      // Product summary formatting
+      let displayProducts = o.productName || 'ชุดฟุตบอล';
+      if (o.items && o.items.length > 0) {
+        displayProducts = o.items.map(i => `${i.name} (${i.size}) x${i.qty}`).join(', ');
+      }
+
+      return `
         <tr class="cod-item-row hidden" data-date-group="${dateStr}">
           <td style="font-size:13px; font-weight:600; padding-left:24px;">${o.date}</td>
           <td>${courierBadges[o.courier] || o.courier}</td>
@@ -242,8 +387,8 @@ export function renderCODTable(searchQuery = '', courierFilter = 'all', statusFi
             <div style="font-size:11px; color:var(--text-dim);">${o.customerName || '-'}</div>
           </td>
           <td>
-            <div style="font-weight:600; color:var(--text-primary);">${o.productName || 'ชุดฟุตบอล'}</div>
-            <small style="color:var(--text-dim);">จำนวน: ${o.qty || 1} ชุด</small>
+            <div style="font-weight:600; color:var(--text-primary);">${displayProducts}</div>
+            <small style="color:var(--text-dim);">รวม: ${o.qty || 1} ชุด</small>
           </td>
           <td class="text-right" style="font-weight:700; color:var(--income-color);">₭${(o.codAmount || 0).toLocaleString()}</td>
           <td class="text-right" style="color:var(--amber-color);">₭${(o.costAmount || 0).toLocaleString()}</td>
@@ -276,7 +421,6 @@ export function renderCODTable(searchQuery = '', courierFilter = 'all', statusFi
   // Attach Collapsible Group Header Toggle Event
   tbody.querySelectorAll('.cod-date-group-header').forEach(headerRow => {
     headerRow.addEventListener('click', (e) => {
-      // Don't toggle if clicking inner action buttons
       if (e.target.closest('button')) return;
 
       const dateStr = headerRow.dataset.date;
