@@ -378,7 +378,7 @@ export function renderCODTable(searchQuery = '', courierFilter = 'all', statusFi
         displayProducts = o.items.map(i => `${i.name} (${i.size}) x${i.qty}`).join(', ');
       }
 
-      return `
+      html += `
         <tr class="cod-item-row hidden" data-date-group="${dateStr}">
           <td style="font-size:13px; font-weight:600; padding-left:24px;">${o.date}</td>
           <td>${courierBadges[o.courier] || o.courier}</td>
