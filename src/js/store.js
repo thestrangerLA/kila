@@ -22,14 +22,6 @@ class BizStore {
 
   init() {
     this.loadFromStorage();
-
-    // Auto-wipe old sample data if present in localStorage
-    const hasSampleTx = this.transactions.some(t => t.id && (t.id.startsWith('tx-10') || t.id.startsWith('tx-1')));
-    const hasSampleStk = this.inventory.some(i => i.id && i.id.startsWith('stk-'));
-
-    if (hasSampleTx || hasSampleStk) {
-      this.clearAllData();
-    }
   }
 
   subscribe(listener) {
