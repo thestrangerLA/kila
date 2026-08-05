@@ -489,7 +489,7 @@ class App {
         codAmount: totalSell,
         costAmount: totalCost,
         status: document.getElementById('codStatus').value,
-        note: document.getElementById('codNote').value
+        note: document.getElementById('codNote')?.value || ''
       };
 
       if (this.editingCODId) {
@@ -937,7 +937,7 @@ class App {
     document.getElementById('codStockItemId').value = order.stockItemId || '';
     document.getElementById('codQty').value = order.qty || 1;
     document.getElementById('codStatus').value = order.status;
-    document.getElementById('codNote').value = order.note || '';
+    const noteEl = document.getElementById('codNote'); if (noteEl) noteEl.value = order.note || '';
 
     // Trigger price preview calculation
     document.getElementById('codStockItemId').dispatchEvent(new Event('change'));
