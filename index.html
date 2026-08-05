@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kila BizAccount - ระบบบัญชี & สต็อกชุดบอล POS (KIP ₭)</title>
+  
+  <!-- Google Fonts: Prompt & Inter for clean Thai/EN typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons for UI -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <link rel="stylesheet" href="/src/css/style.css">
+</head>
+<body>
+  <div id="app" class="app-container">
+    <!-- Navbar Header -->
+    <header class="top-nav glass-card">
+      <div class="brand">
+        <div class="brand-icon">
+          <i class="fa-solid fa-shirt"></i>
+        </div>
+        <div class="brand-text">
+          <h1>Kila <span class="accent-text">BizAccount</span></h1>
+          <p class="tagline">ระบบบัญชีธุรกิจ, สต็อกชุดฟุตบอล & POS (สกุลเงิน กีบลาว ₭)</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button id="btnInitialBalance" class="btn btn-outline" title="ตั้งค่าเงินสดเริ่มต้น">
+          <i class="fa-solid fa-wallet"></i>
+          <span>เงินสดเริ่มต้น: <strong id="lblInitialBalance">₭0</strong></span>
+        </button>
+
+        <button id="btnActualBalance" class="btn btn-outline" title="บันทึกเงินในบัญชีจริง" style="border-color:var(--accent-primary);color:var(--accent-primary);">
+          <i class="fa-solid fa-building-columns"></i>
+          <span>เงินในบัญชีจริง: <strong id="lblActualBalance">₭0</strong></span>
+        </button>
+
+        <button id="btnExportCSV" class="btn btn-secondary" title="ส่งออกข้อมูลเป็น CSV">
+          <i class="fa-solid fa-file-csv"></i>
+          <span>ส่งออก CSV</span>
+        </button>
+
+        <button id="btnClearAllData" class="btn btn-icon" title="ล้างข้อมูลทั้งหมด" style="color:var(--expense-color);">
+          <i class="fa-solid fa-trash-can"></i>
+        </button>
+
+        <button id="btnThemeToggle" class="btn btn-icon" title="สลับ Dark / Light Mode">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Navigation Tabs -->
+    <nav class="tab-nav">
+      <button class="tab-btn active" data-tab="dashboard">
+        <i class="fa-solid fa-chart-pie"></i>
+        <span>ภาพรวม (Dashboard)</span>
+      </button>
+      <button class="tab-btn" data-tab="pos">
+        <i class="fa-solid fa-cash-register"></i>
+        <span>ขายหน้าร้าน (POS)</span>
+      </button>
+      <button class="tab-btn" data-tab="transactions">
+        <i class="fa-solid fa-receipt"></i>
+        <span>บันทึก รับ-จ่าย-ต้นทุน</span>
+      </button>
+      <button class="tab-btn" data-tab="stock">
+        <i class="fa-solid fa-boxes-stacked"></i>
+        <span>สต็อกชุดฟุตบอล (Stock)</span>
+      </button>
+      <button class="tab-btn" data-tab="reports">
+        <i class="fa-solid fa-file-invoice-dollar"></i>
+        <span>รายงานทางการเงิน</span>
+      </button>
+    </nav>
+
+    <!-- Content Views -->
+    <main class="main-content">
+
+      <!-- ================= 1. DASHBOARD VIEW ================= -->
+      <section id="view-dashboard" class="tab-view active">
+
+        <!-- Dashboard Date Filter Bar -->
+        <div class="date-filter-bar glass-card" id="dashDateFilterBar">
+          <div class="date-filter-left">
+            <i class="fa-solid fa-calendar-days" style="color:var(--accent-primary);"></i>
+            <span class="date-filter-label">กรองตามช่วงเวลา:</span>
+          </div>
+          <div class="date-filter-controls">
+            <select id="dashFilterMonth" class="form-control select-control select-sm">
+              <option value="all">-- ทุกเดือน --</option>
+              <option value="01">มกราคม</option>
+              <option value="02">กุมภาพันธ์</option>
+              <option value="03">มีนาคม</option>
+              <option value="04">เมษายน</option>
+              <option value="05">พฤษภาคม</option>
+              <option value="06">มิถุนายน</option>
+              <option value="07">กรกฎาคม</option>
+              <option value="08">สิงหาคม</option>
+              <option value="09">กันยายน</option>
+              <option value="10">ตุลาคม</option>
+              <option value="11">พฤศจิกายน</option>
+              <option value="12">ธันวาคม</option>
+            </select>
+            <select id="dashFilterYear" class="form-control select-control select-sm">
+              <option value="all">-- ทุกปี --</option>
+            </select>
+            <div class="date-range-group">
+              <input type="date" id="dashFilterDateFrom" class="form-control select-sm" title="วันที่เริ่มต้น">
+              <span style="color:var(--text-dim);font-size:12px;">ถึง</span>
+              <input type="date" id="dashFilterDateTo" class="form-control select-sm" title="วันที่สิ้นสุด">
+            </div>
+            <button id="btnDashClearFilter" class="btn btn-outline btn-sm">
+              <i class="fa-solid fa-filter-circle-xmark"></i> ล้างตัวกรอง
+            </button>
+          </div>
+          <div id="dashFilterBadge" class="filter-active-badge hidden">
+            <i class="fa-solid fa-circle" style="font-size:7px;color:var(--income-color);"></i>
+            <span id="dashFilterBadgeText">กำลังกรอง</span>
+          </div>
+        </div>
+
+        <!-- Quick Financial Metrics Row -->
+        <div class="metrics-grid">
+          <!-- Balance Card -->
+          <div class="metric-card glass-card card-cyan">
+            <div class="card-header">
+              <span>เงินสดคงเหลือสะสม</span>
+              <i class="fa-solid fa-sack-dollar icon"></i>
+            </div>
+            <div class="card-body">
+              <h2 id="metricCashBalance">₭0</h2>
+              <span class="card-subtitle">เงินสดตั้งต้น + รายรับ - รายจ่ายรวม</span>
+            </div>
+          </div>
+
+          <!-- Income Card -->
+          <div class="metric-card glass-card card-emerald">
+            <div class="card-header">
+              <span>รายรับรวม (Income)</span>
+              <i class="fa-solid fa-arrow-trend-up icon"></i>
+            </div>
+            <div class="card-body">
+              <h2 id="metricTotalIncome">₭0</h2>
+              <span class="card-subtitle">ยอดขายชุดบอลและบริการทั้งหมด</span>
+            </div>
+          </div>
+
+          <!-- Cost Card -->
+          <div class="metric-card glass-card card-amber">
+            <div class="card-header">
+              <span>ต้นทุนรวม (Cost of Goods)</span>
+              <i class="fa-solid fa-boxes-packing icon"></i>
+            </div>
+            <div class="card-body">
+              <h2 id="metricTotalCost">₭0</h2>
+              <span class="card-subtitle">ค่าซื้อชุดบอล สต็อก สกรีน</span>
+            </div>
+          </div>
+
+          <!-- Expense Card -->
+          <div class="metric-card glass-card card-rose">
+            <div class="card-header">
+              <span>รายจ่ายดำเนินงาน (Expenses)</span>
+              <i class="fa-solid fa-arrow-trend-down icon"></i>
+            </div>
+            <div class="card-body">
+              <h2 id="metricTotalExpense">₭0</h2>
+              <span class="card-subtitle">ค่าเช่าร้าน ค่าไฟ ค่าแอด ค่าขนส่ง</span>
+            </div>
+          </div>
+
+          <!-- Net Profit Card -->
+          <div class="metric-card glass-card card-indigo">
+            <div class="card-header">
+              <span>กำไรสุทธิ (Net Profit)</span>
+              <i class="fa-solid fa-scale-balanced icon"></i>
+            </div>
+            <div class="card-body">
+              <h2 id="metricNetProfit">₭0</h2>
+              <span class="card-subtitle" id="metricProfitMargin">อัตรากำไร: 0%</span>
+            </div>
+          </div>
+
+          <!-- Actual Bank Balance Card -->
+          <div class="metric-card glass-card" style="border-color:rgba(99,102,241,0.4);background:linear-gradient(135deg,rgba(99,102,241,0.08),rgba(99,102,241,0.03));">
+            <div class="card-header">
+              <span style="color:#818cf8;">เงินในบัญชีจริง</span>
+              <i class="fa-solid fa-building-columns icon" style="color:#818cf8;"></i>
+            </div>
+            <div class="card-body">
+              <h2 id="metricActualBalance" style="color:#818cf8;">₭0</h2>
+              <button id="btnEditActualBalance" class="card-subtitle" style="background:none;border:none;cursor:pointer;color:var(--accent-primary);font-size:11px;padding:0;display:flex;align-items:center;gap:4px;">
+                <i class="fa-solid fa-pen"></i> คลิกเพื่อบันทึกยอดเงินจริง
+              </button>
+            </div>
+          </div>
+
+          <!-- Balance Difference Card -->
+          <div class="metric-card glass-card" style="border-color:rgba(234,179,8,0.4);background:linear-gradient(135deg,rgba(234,179,8,0.08),rgba(234,179,8,0.03));">
+            <div class="card-header">
+              <span style="color:#fbbf24;">ส่วนต่าง (เงินคำนวณ − บัญชีจริง)</span>
+              <i class="fa-solid fa-right-left icon" style="color:#fbbf24;"></i>
+            </div>
+            <div class="card-body">
+              <h2 id="metricBalanceDiff">₭0</h2>
+              <span class="card-subtitle" id="metricBalanceDiffLabel">เทียบสมดุล — ยังไม่ได้บันทึกเงินจริง</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Grid Row -->
+        <div class="charts-grid">
+          <!-- Overview Bar Chart -->
+          <div class="chart-card glass-card grid-col-2">
+            <div class="chart-header">
+              <h3><i class="fa-solid fa-chart-column"></i> เปรียบเทียบ รายรับ vs ต้นทุน vs รายจ่าย (KIP ₭)</h3>
+            </div>
+            <div class="chart-container">
+              <canvas id="overviewChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Expense Breakdown Doughnut Chart -->
+          <div class="chart-card glass-card">
+            <div class="chart-header">
+              <h3><i class="fa-solid fa-chart-pie"></i> สัดส่วนค่าใช้จ่ายตามหมวดหมู่</h3>
+            </div>
+            <div class="chart-container">
+              <canvas id="breakdownChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Cashflow Line Chart -->
+          <div class="chart-card glass-card grid-col-3">
+            <div class="chart-header">
+              <h3><i class="fa-solid fa-chart-line"></i> แนวโน้มเงินสดคงเหลือสะสม (KIP Cash Flow)</h3>
+            </div>
+            <div class="chart-container">
+              <canvas id="trendChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 2. POINT OF SALE (POS) VIEW ================= -->
+      <section id="view-pos" class="tab-view">
+        <div class="pos-layout">
+          <!-- Left Column: Catalog & Search -->
+          <div class="pos-catalog-column">
+            <div class="pos-filter-bar glass-card">
+              <div class="input-with-icon">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="posSearch" placeholder="ค้นหาชุดบอล, ทีม, รหัส..." class="form-control">
+              </div>
+
+              <select id="posSizeFilter" class="form-control select-control">
+                <option value="all">-- ทุกไซส์ --</option>
+                <option value="S">ไซส์ S</option>
+                <option value="M">ไซส์ M</option>
+                <option value="L">ไซส์ L</option>
+                <option value="XL">ไซส์ XL</option>
+                <option value="XXL">ไซส์ XXL</option>
+              </select>
+            </div>
+
+            <!-- Product Grid -->
+            <div id="posCatalogGrid" class="pos-catalog-grid">
+              <!-- Product cards dynamically inserted -->
+            </div>
+
+            <div id="posCatalogEmpty" class="empty-state hidden">
+              <i class="fa-solid fa-shirt empty-icon"></i>
+              <p>ไม่พบรายการชุดบอลตามคำค้นหา</p>
+            </div>
+          </div>
+
+          <!-- Right Column: Cart & Summary Panel -->
+          <div class="pos-cart-column glass-card">
+            <div class="pos-cart-header">
+              <h3><i class="fa-solid fa-cart-shopping"></i> รายการขายในตะกร้า</h3>
+              <button id="btnClearCart" class="btn btn-outline btn-sm" title="ล้างรายการ">
+                <i class="fa-solid fa-trash-can"></i> ล้างตะกร้า
+              </button>
+            </div>
+
+            <div class="pos-cart-table-wrapper">
+              <table class="data-table pos-cart-table">
+                <thead>
+                  <tr>
+                    <th>สินค้า</th>
+                    <th class="text-center">จำนวน</th>
+                    <th class="text-right">รวม (₭)</th>
+                    <th class="text-center">ลบ</th>
+                  </tr>
+                </thead>
+                <tbody id="posCartTableBody">
+                  <!-- Cart items dynamically inserted -->
+                </tbody>
+              </table>
+              <div id="posCartEmpty" class="empty-state">
+                <i class="fa-solid fa-basket-shopping empty-icon"></i>
+                <p>ยังไม่มีสินค้าในตะกร้า<br><small>เลือกคลิกชุดบอลด้านซ้ายเพื่อเพิ่มรายการ</small></p>
+              </div>
+            </div>
+
+            <div class="pos-cart-summary">
+              <div class="summary-line">
+                <span>ยอดรวมสินค้า (Subtotal)</span>
+                <strong id="posSubtotal">₭0</strong>
+              </div>
+              <div class="summary-line">
+                <span>ส่วนลด (Discount ₭)</span>
+                <input type="number" id="posDiscount" class="form-control form-control-sm text-right" style="width: 120px;" placeholder="0" min="0">
+              </div>
+              <div class="summary-line grand-line">
+                <span>ยอดรวมชำระสุทธิ</span>
+                <strong id="posGrandTotal" class="text-emerald">₭0</strong>
+              </div>
+
+              <button id="btnPOSCheckout" class="btn btn-primary btn-lg btn-block margin-top-md" disabled>
+                <i class="fa-solid fa-cash-register"></i> ชำระเงิน & ออกใบเสร็จ (Checkout)
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 3. TRANSACTIONS VIEW ================= -->
+      <section id="view-transactions" class="tab-view">
+
+        <!-- Transactions Date Filter Bar -->
+        <div class="date-filter-bar glass-card">
+          <div class="date-filter-left">
+            <i class="fa-solid fa-calendar-days" style="color:var(--accent-primary);"></i>
+            <span class="date-filter-label">กรองตามช่วงเวลา:</span>
+          </div>
+          <div class="date-filter-controls">
+            <select id="txFilterMonth" class="form-control select-control select-sm">
+              <option value="all">-- ทุกเดือน --</option>
+              <option value="01">มกราคม</option>
+              <option value="02">กุมภาพันธ์</option>
+              <option value="03">มีนาคม</option>
+              <option value="04">เมษายน</option>
+              <option value="05">พฤษภาคม</option>
+              <option value="06">มิถุนายน</option>
+              <option value="07">กรกฎาคม</option>
+              <option value="08">สิงหาคม</option>
+              <option value="09">กันยายน</option>
+              <option value="10">ตุลาคม</option>
+              <option value="11">พฤศจิกายน</option>
+              <option value="12">ธันวาคม</option>
+            </select>
+            <select id="txFilterYear" class="form-control select-control select-sm">
+              <option value="all">-- ทุกปี --</option>
+            </select>
+            <div class="date-range-group">
+              <input type="date" id="txFilterDateFrom" class="form-control select-sm" title="วันที่เริ่มต้น">
+              <span style="color:var(--text-dim);font-size:12px;">ถึง</span>
+              <input type="date" id="txFilterDateTo" class="form-control select-sm" title="วันที่สิ้นสุด">
+            </div>
+            <button id="btnTxClearDateFilter" class="btn btn-outline btn-sm">
+              <i class="fa-solid fa-filter-circle-xmark"></i> ล้างวันที่
+            </button>
+          </div>
+          <div id="txDateFilterBadge" class="filter-active-badge hidden">
+            <i class="fa-solid fa-circle" style="font-size:7px;color:var(--income-color);"></i>
+            <span id="txDateFilterBadgeText">กำลังกรอง</span>
+          </div>
+        </div>
+
+        <div class="transactions-header-bar">
+          <div class="search-filter-group">
+            <div class="input-with-icon">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="txSearch" placeholder="ค้นหาตามรายการ, หมายเหตุ, แท็ก..." class="form-control">
+            </div>
+
+            <div class="filter-pills">
+              <button class="filter-pill active" data-filter-type="all">ทั้งหมด</button>
+              <button class="filter-pill pill-income" data-filter-type="income">🟢 รายรับ</button>
+              <button class="filter-pill pill-cost" data-filter-type="cost">🟠 ต้นทุน</button>
+              <button class="filter-pill pill-expense" data-filter-type="expense">🔴 รายจ่าย</button>
+            </div>
+
+            <select id="txCategoryFilter" class="form-control select-control">
+              <option value="all">-- ทุกหมวดหมู่ --</option>
+              <option value="ขายชุดฟุตบอล">ขายชุดฟุตบอล</option>
+              <option value="สั่งซื้อชุดบอลเข้าสต็อก">สั่งซื้อชุดบอลเข้าสต็อก</option>
+              <option value="บรรจุภัณฑ์/สกรีนเบอร์">บรรจุภัณฑ์/สกรีนเบอร์</option>
+              <option value="ค่าการตลาด/โฆษณา">ค่าการตลาด/โฆษณา</option>
+              <option value="ค่าเช่าหน้าร้าน/ค่าไฟ">ค่าเช่าหน้าร้าน/ค่าไฟ</option>
+              <option value="ค่าขนส่ง/พัสดุ">ค่าขนส่ง/พัสดุ</option>
+              <option value="อื่นๆ">อื่นๆ</option>
+            </select>
+          </div>
+
+          <button id="btnOpenAddModal" class="btn btn-primary btn-lg">
+            <i class="fa-solid fa-circle-plus"></i>
+            <span>+ บันทึกรายการใหม่</span>
+          </button>
+        </div>
+
+        <!-- Transactions Table Container -->
+        <div class="table-card glass-card">
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>วันที่</th>
+                  <th>ประเภท</th>
+                  <th>หมวดหมู่</th>
+                  <th>คำอธิบาย / หมายเหตุ</th>
+                  <th>ช่องทางชำระ</th>
+                  <th class="text-right">จำนวนเงิน (KIP ₭)</th>
+                  <th class="text-right">กำไรสุทธิ ₭</th>
+                  <th class="text-center">จัดการ</th>
+                </tr>
+              </thead>
+              <tbody id="txTableBody">
+                <!-- Transaction rows inserted dynamically -->
+              </tbody>
+            </table>
+          </div>
+          <div id="txEmptyState" class="empty-state hidden">
+            <i class="fa-solid fa-folder-open empty-icon"></i>
+            <p>ไม่พบรายการธุรกรรมตามเงื่อนไขที่ค้นหา</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 4. FOOTBALL KITS STOCK VIEW ================= -->
+      <section id="view-stock" class="tab-view">
+        <!-- Stock Quick Stats Row -->
+        <div class="stock-stats-row">
+          <div class="stock-stat-box glass-card">
+            <div class="title">จำนวนชุดบอลคงเหลือรวม</div>
+            <div class="value text-cyan" id="stkTotalQty">0 ชุด</div>
+          </div>
+          <div class="stock-stat-box glass-card">
+            <div class="title">มูลค่าสต็อกราคาทุนรวม</div>
+            <div class="value text-amber" id="stkTotalCostVal">₭0</div>
+          </div>
+          <div class="stock-stat-box glass-card">
+            <div class="title">มูลค่าประเมินราคาขายรวม</div>
+            <div class="value text-emerald" id="stkTotalSellVal">₭0</div>
+          </div>
+          <div class="stock-stat-box glass-card">
+            <div class="title">สินค้าใกล้หมด / หมดสต็อก</div>
+            <div class="value text-rose" id="stkAlertCount">0 รายการ</div>
+          </div>
+        </div>
+
+        <!-- Stock Action & Search Bar -->
+        <div class="transactions-header-bar margin-top-md">
+          <div class="search-filter-group">
+            <div class="input-with-icon">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="stockSearch" placeholder="ค้นหาชื่อชุดบอล, ทีม, รหัสสินค้า..." class="form-control">
+            </div>
+
+            <select id="stockSizeFilter" class="form-control select-control">
+              <option value="all">-- ทุกไซส์ (All Sizes) --</option>
+              <option value="S">ไซส์ S</option>
+              <option value="M">ไซส์ M</option>
+              <option value="L">ไซส์ L</option>
+              <option value="XL">ไซส์ XL</option>
+              <option value="XXL">ไซส์ XXL</option>
+            </select>
+
+            <select id="stockStatusFilter" class="form-control select-control">
+              <option value="all">-- ทุกสถานะสต็อก --</option>
+              <option value="in_stock">🟢 พร้อมขาย</option>
+              <option value="low_stock">🟠 สินค้าใกล้หมด</option>
+              <option value="out_of_stock">🔴 หมดสต็อก</option>
+            </select>
+          </div>
+
+          <button id="btnOpenAddStockModal" class="btn btn-primary btn-lg">
+            <i class="fa-solid fa-shirt"></i>
+            <span>+ เพิ่มชุดบอลเข้าสต็อก</span>
+          </button>
+        </div>
+
+        <!-- Football Kits Inventory Data Table -->
+        <div class="table-card glass-card">
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>รหัสสินค้า</th>
+                  <th>ชื่อชุดฟุตบอล / ทีม</th>
+                  <th>ไซส์</th>
+                  <th class="text-right">ราคาทุน (₭)</th>
+                  <th class="text-right">ราคาขาย (₭)</th>
+                  <th class="text-center">คงเหลือ</th>
+                  <th class="text-right">มูลค่าทุนรวม (₭)</th>
+                  <th class="text-center">สถานะ</th>
+                  <th class="text-center">จัดการสต็อก</th>
+                </tr>
+              </thead>
+              <tbody id="stockTableBody">
+                <!-- Football kit rows dynamically inserted -->
+              </tbody>
+            </table>
+          </div>
+          <div id="stockEmptyState" class="empty-state hidden">
+            <i class="fa-solid fa-boxes-packing empty-icon"></i>
+            <p>ไม่พบรายการชุดฟุตบอลในระบบสต็อก</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 5. REPORTS VIEW ================= -->
+      <section id="view-reports" class="tab-view">
+        <div class="reports-header glass-card">
+          <div class="report-title-box">
+            <h2><i class="fa-solid fa-file-contract"></i> งบกำไรขาดทุนย่อ และสรุปกระแสเงินสด (KIP ₭)</h2>
+            <p>สรุปการดำเนินงานธุรกิจชุดฟุตบอลเพื่อการวางแผนทางการเงิน</p>
+          </div>
+          <button id="btnPrintReport" class="btn btn-primary">
+            <i class="fa-solid fa-print"></i> พิมพ์ / บันทึกรายงาน PDF
+          </button>
+        </div>
+
+        <div class="pnl-container glass-card">
+          <table class="pnl-table">
+            <tbody>
+              <tr class="pnl-section-title">
+                <td colspan="2"><strong>1. รายรับจากการดำเนินงาน (Revenues)</strong></td>
+              </tr>
+              <tr>
+                <td class="indent">รายรับจากการขายชุดฟุตบอลและบริการ</td>
+                <td class="text-right text-emerald" id="pnlTotalIncome">₭0</td>
+              </tr>
+
+              <tr class="pnl-section-title">
+                <td colspan="2"><strong>2. ต้นทุนสินค้าสั่งซื้อ (Cost of Goods Sold - COGS)</strong></td>
+              </tr>
+              <tr>
+                <td class="indent">ต้นทุนชุดบอล สต็อก นำเข้า และสกรีน</td>
+                <td class="text-right text-amber" id="pnlTotalCost">₭0</td>
+              </tr>
+              <tr class="subtotal-row">
+                <td><strong>กำไรขั้นต้น (Gross Profit)</strong></td>
+                <td class="text-right" id="pnlGrossProfit">₭0</td>
+              </tr>
+
+              <tr class="pnl-section-title">
+                <td colspan="2"><strong>3. ค่าใช้จ่ายในการดำเนินงาน (Operating Expenses)</strong></td>
+              </tr>
+              <tr>
+                <td class="indent">ค่าการตลาดและโฆษณาออนไลน์</td>
+                <td class="text-right" id="pnlExpMarketing">₭0</td>
+              </tr>
+              <tr>
+                <td class="indent">ค่าเช่าหน้าร้านและสาธารณูปโภค</td>
+                <td class="text-right" id="pnlExpRent">₭0</td>
+              </tr>
+              <tr>
+                <td class="indent">ค่าขนส่งและพัสดุ</td>
+                <td class="text-right" id="pnlExpShipping">₭0</td>
+              </tr>
+              <tr>
+                <td class="indent">ค่าใช้จ่ายดำเนินงานอื่นๆ</td>
+                <td class="text-right" id="pnlExpOther">₭0</td>
+              </tr>
+              <tr class="subtotal-row">
+                <td><strong>รวมค่าใช้จ่ายดำเนินงาน (Total Expenses)</strong></td>
+                <td class="text-right text-rose" id="pnlTotalExpense">₭0</td>
+              </tr>
+
+              <tr class="grand-total-row">
+                <td><strong>4. กำไรสุทธิ (Net Profit / Loss - KIP)</strong></td>
+                <td class="text-right" id="pnlNetProfit">₭0</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Modal: POS Checkout -->
+    <div id="posCheckoutModal" class="modal-overlay hidden">
+      <div class="modal-card glass-card modal-sm">
+        <div class="modal-header">
+          <h3><i class="fa-solid fa-cash-register"></i> ชำระเงินขายหน้าร้าน (Checkout)</h3>
+          <button id="btnClosePosModal" class="btn-close">&times;</button>
+        </div>
+        <form id="posCheckoutForm">
+          <div class="pos-checkout-summary-box">
+            <div class="line"><span>รวมเงินสินค้า:</span><strong id="posModalSubtotal">₭0</strong></div>
+            <div class="line"><span>ส่วนลด:</span><strong id="posModalDiscount" class="text-rose">-₭0</strong></div>
+            <div class="line grand"><span>ยอดชำระสุทธิ:</span><strong id="posModalGrandTotal" class="text-emerald">₭0</strong></div>
+          </div>
+
+          <div class="form-group margin-top-md">
+            <label>ช่องทางการชำระเงิน</label>
+            <select id="posPaymentMethod" class="form-control" required>
+              <option value="cash" selected>💵 เงินสด (Cash)</option>
+              <option value="transfer">📱 โอนเงิน (QR Code Transfer)</option>
+              <option value="card">💳 บัตรเครดิต (Credit Card)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>จำนวนเงินที่รับมา (กีบ ₭)</label>
+            <input type="number" id="posCashReceived" class="form-control" placeholder="0" min="0" step="any" required>
+          </div>
+
+          <div class="pos-change-box margin-top-sm">
+            <span>เงินทอนคงเหลือ:</span>
+            <strong id="posModalChange" class="text-cyan">₭0</strong>
+          </div>
+
+          <div class="form-group margin-top-sm">
+            <label>หมายเหตุ / ชื่อลูกค้า (ถ้ามี)</label>
+            <input type="text" id="posNote" class="form-control" placeholder="ชื่อลูกค้า หรือเบอร์โทร">
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" id="btnCancelPosModal" class="btn btn-secondary">ยกเลิก</button>
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> ยืนยันชำระเงิน & พิมพ์สลิป</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal: POS Printable Digital Receipt -->
+    <div id="posReceiptModal" class="modal-overlay hidden">
+      <div class="modal-card glass-card modal-sm">
+        <div class="modal-header">
+          <h3><i class="fa-solid fa-receipt"></i> ใบเสร็จรับเงิน (Receipt Slip)</h3>
+          <button id="btnCloseReceiptModal" class="btn-close">&times;</button>
+        </div>
+
+        <div class="receipt-slip-preview">
+          <div class="rcpt-header text-center">
+            <h3>ร้านชุดฟุตบอล Kila Biz</h3>
+            <p>ระบบบัญชี & สต็อกชุดบอล (KIP ₭)</p>
+            <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">
+              เลขที่: <span id="rcptOrderId">#POS-0000</span> | วันที่: <span id="rcptDate">04/08/2026</span>
+            </div>
+            <div style="font-size: 11px; color: var(--text-muted);">
+              การชำระ: <span id="rcptPayMethod">เงินสด</span>
+            </div>
+          </div>
+
+          <div id="rcptItemsList" class="rcpt-items-list margin-top-md">
+            <!-- Receipt line items inserted dynamically -->
+          </div>
+
+          <div class="rcpt-totals-box margin-top-md">
+            <div class="rcpt-line"><span>รวมเงิน:</span><span id="rcptSubtotal">₭0</span></div>
+            <div class="rcpt-line"><span>ส่วนลด:</span><span id="rcptDiscount">-₭0</span></div>
+            <div class="rcpt-line grand"><span>ยอดสุทธิ:</span><span id="rcptGrandTotal" class="text-emerald">₭0</span></div>
+            <div class="rcpt-line"><span>รับเงินมา:</span><span id="rcptCashReceived">₭0</span></div>
+            <div class="rcpt-line"><span>เงินทอน:</span><span id="rcptChange">₭0</span></div>
+          </div>
+
+          <div class="rcpt-footer text-center margin-top-md">
+            <p style="font-size: 11px; color: var(--text-muted);">*** ขอบคุณที่อุดหนุนชุดบอลร้านเรา ***</p>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button id="btnPrintReceiptSlip" class="btn btn-primary btn-block">
+            <i class="fa-solid fa-print"></i> พิมพ์สลิปใบเสร็จ (Print Slip)
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Add/Edit Transaction -->
+    <div id="txModal" class="modal-overlay hidden">
+      <div class="modal-card glass-card">
+        <div class="modal-header">
+          <h3 id="txModalTitle"><i class="fa-solid fa-pen-to-square"></i> บันทึกรายการใหม่</h3>
+          <button id="btnCloseTxModal" class="btn-close">&times;</button>
+        </div>
+
+        <form id="txForm">
+          <input type="hidden" id="txId">
+
+          <div class="form-group">
+            <label>ประเภทรายการ</label>
+            <div class="type-selector">
+              <label class="type-option option-income">
+                <input type="radio" name="txType" value="income" checked>
+                <span>🟢 รายรับ</span>
+              </label>
+              <label class="type-option option-cost">
+                <input type="radio" name="txType" value="cost">
+                <span>🟠 ต้นทุน</span>
+              </label>
+              <label class="type-option option-expense">
+                <input type="radio" name="txType" value="expense">
+                <span>🔴 รายจ่าย</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>วันที่</label>
+              <input type="date" id="txDate" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+              <label>จำนวนเงิน / ราคาขาย (กีบ ₭)</label>
+              <input type="number" id="txAmount" class="form-control" placeholder="0" min="0" step="any" required>
+            </div>
+          </div>
+
+          <!-- ต้นทุนต่อรายการ (แสดงเฉพาะประเภท รายรับ) -->
+          <div id="txCostRow" class="form-row" style="display:none;">
+            <div class="form-group">
+              <label><i class="fa-solid fa-coins" style="color:var(--cost-color)"></i> ต้นทุนต่อรายการนี้ (₭) <small style="color:var(--text-dim);">(สำหรับคำนวณกำไรสุทธิ)</small></label>
+              <input type="number" id="txLinkedCost" class="form-control" placeholder="0 (กรอกหรือเว้นว่าง)" min="0" step="any">
+            </div>
+            <div class="form-group">
+              <label><i class="fa-solid fa-chart-line" style="color:var(--income-color)"></i> กำไรสุทธิ (Net Profit)</label>
+              <div id="txNetProfitPreview" class="form-control" style="background:var(--bg-secondary);font-weight:600;color:var(--income-color);display:flex;align-items:center;gap:6px;">₭0</div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>หมวดหมู่</label>
+              <select id="txCategory" class="form-control" required>
+                <option value="ขายชุดฟุตบอล">ขายชุดฟุตบอล</option>
+                <option value="สั่งซื้อชุดบอลเข้าสต็อก">สั่งซื้อชุดบอลเข้าสต็อก</option>
+                <option value="บรรจุภัณฑ์/สกรีนเบอร์">บรรจุภัณฑ์/สกรีนเบอร์</option>
+                <option value="ค่าการตลาด/โฆษณา">ค่าการตลาด/โฆษณา</option>
+                <option value="ค่าเช่าหน้าร้าน/ค่าไฟ">ค่าเช่าหน้าร้าน/ค่าไฟ</option>
+                <option value="ค่าขนส่ง/พัสดุ">ค่าขนส่ง/พัสดุ</option>
+                <option value="อื่นๆ">อื่นๆ</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>ช่องทางการชำระ</label>
+              <select id="txPaymentMethod" class="form-control">
+                <option value="transfer">โอนเงิน (Bank Transfer)</option>
+                <option value="cash">เงินสด (Cash)</option>
+                <option value="card">บัตรเครดิต (Credit Card)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>คำอธิบาย / หมายเหตุ</label>
+            <input type="text" id="txNote" class="form-control" placeholder="เช่น ขายชุดบอลทีมชาติ 5 ชุด...">
+          </div>
+
+          <div class="form-group">
+            <label>แท็กคำค้นหา (แบ่งด้วยเครื่องหมายจุลภาค)</label>
+            <input type="text" id="txTags" class="form-control" placeholder="เช่น ชุดบอล, ทีมชาติลาว, โอนเงิน">
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" id="btnCancelTxModal" class="btn btn-secondary">ยกเลิก</button>
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> บันทึกข้อมูล</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal: Add/Edit Stock Item -->
+    <div id="stockModal" class="modal-overlay hidden">
+      <div class="modal-card glass-card">
+        <div class="modal-header">
+          <h3 id="stockModalTitle"><i class="fa-solid fa-shirt"></i> เพิ่มรายการชุดฟุตบอลเข้าสต็อก</h3>
+          <button id="btnCloseStockModal" class="btn-close">&times;</button>
+        </div>
+
+        <form id="stockForm">
+          <input type="hidden" id="stkId">
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>รหัสสินค้า (Code)</label>
+              <input type="text" id="stkCode" class="form-control" placeholder="เช่น LAO-H-M, MU-01..." required>
+            </div>
+
+            <div class="form-group">
+              <label>ชื่อชุดฟุตบอล</label>
+              <input type="text" id="stkName" class="form-control" placeholder="เช่น ชุดบอลทีมชาติลาว เหย้า..." required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>ชื่อทีม / สโมสร</label>
+              <input type="text" id="stkTeam" class="form-control" placeholder="เช่น ทีมชาติลาว, Man United..." required>
+            </div>
+
+            <div class="form-group">
+              <label>ไซส์ (Size)</label>
+              <select id="stkSize" class="form-control" required>
+                <option value="S">S</option>
+                <option value="M" selected>M</option>
+                <option value="L">L</option>
+                <option value="XL">XL</option>
+                <option value="XXL">XXL</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>ต้นทุนต่อชุด (₭)</label>
+              <input type="number" id="stkCostPrice" class="form-control" placeholder="55000" min="0" step="any" required>
+            </div>
+
+            <div class="form-group">
+              <label>ราคาขายต่อชุด (₭)</label>
+              <input type="number" id="stkSellingPrice" class="form-control" placeholder="145000" min="0" step="any" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>จำนวนสต็อกตั้งต้น (ชุด)</label>
+              <input type="number" id="stkStockQty" class="form-control" placeholder="10" min="0" step="any" required>
+            </div>
+
+            <div class="form-group">
+              <label>ระดับเตือนสินค้าใกล้หมด (ชุด)</label>
+              <input type="number" id="stkMinQty" class="form-control" placeholder="5" min="1" step="any" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>รายละเอียด / สเปกชุดบอล</label>
+            <input type="text" id="stkNote" class="form-control" placeholder="เนื้อผ้า สีเสื้อ ออปชั่นสกรีน...">
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" id="btnCancelStockModal" class="btn btn-secondary">ยกเลิก</button>
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูลสต็อก</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal: Quick Stock Adjustment (Sell / Restock) -->
+    <div id="stockAdjustModal" class="modal-overlay hidden">
+      <div class="modal-card glass-card modal-sm">
+        <div class="modal-header">
+          <h3 id="adjModalTitle"><i class="fa-solid fa-cart-shopping"></i> ทำรายการปรับสต็อก</h3>
+          <button id="btnCloseAdjModal" class="btn-close">&times;</button>
+        </div>
+        <form id="stockAdjustForm">
+          <input type="hidden" id="adjStkId">
+          <input type="hidden" id="adjType" value="sell">
+
+          <div style="margin-bottom: 15px; font-size: 14px;">
+            <strong id="adjProdName">ชื่อสินค้า</strong>
+            <div style="font-size: 12px; color: var(--text-dim);" id="adjProdMeta">คงเหลือ: 0 ชุด</div>
+          </div>
+
+          <div class="form-group">
+            <label id="adjQtyLabel">จำนวนที่ขายออก (ชุด)</label>
+            <input type="number" id="adjQty" class="form-control" placeholder="1" min="1" value="1" required>
+          </div>
+
+          <div class="form-group">
+            <label>หมายเหตุเพิ่มเติม (ถ้ามี)</label>
+            <input type="text" id="adjNote" class="form-control" placeholder="ชื่อลูกค้า หรือเลขบิล">
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" id="btnCancelAdjModal" class="btn btn-secondary">ยกเลิก</button>
+            <button type="submit" id="btnSubmitAdj" class="btn btn-primary">ยืนยันทำรายการ</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal: Initial Balance -->
+    <div id="balModal" class="modal-overlay hidden">
+      <div class="modal-card glass-card modal-sm">
+        <div class="modal-header">
+          <h3><i class="fa-solid fa-wallet"></i> ตั้งค่าเงินสดเริ่มต้น (KIP ₭)</h3>
+          <button id="btnCloseBalModal" class="btn-close">&times;</button>
+        </div>
+        <form id="balForm">
+          <div class="form-group">
+            <label>จำนวนเงินสดเริ่มต้น (กีบ ₭)</label>
+            <input type="number" id="balAmount" class="form-control" placeholder="5000000" min="0" step="any" required>
+          </div>
+          <div class="modal-footer">
+            <button type="button" id="btnCancelBalModal" class="btn btn-secondary">ยกเลิก</button>
+            <button type="submit" class="btn btn-primary">บันทึก</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal: Transaction Bill (ดูบิล รายการ รับ-จ่าย-ต้นทุน) -->
+    <div id="txBillModal" class="modal-overlay hidden">
+      <div class="modal-card glass-card modal-sm">
+        <div class="modal-header">
+          <h3><i class="fa-solid fa-file-invoice"></i> บิล / ใบบันทึกรายการ</h3>
+          <button id="btnCloseTxBillModal" class="btn-close">&times;</button>
+        </div>
+
+        <div class="receipt-slip-preview" id="txBillContent">
+          <div class="rcpt-header text-center">
+            <h3>ร้านชุดฟุตบอล Kila Biz</h3>
+            <p style="font-size:11px; color:var(--text-muted);">ระบบบัญชี รับ-จ่าย-ต้นทุน (KIP ₭)</p>
+            <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">
+              เลขที่: <span id="billTxId">#TX-0000</span> | วันที่: <span id="billDate">-</span>
+            </div>
+          </div>
+
+          <div class="rcpt-items-list margin-top-md">
+            <div class="rcpt-line" style="border-bottom:1px solid var(--border-color);padding-bottom:8px;margin-bottom:8px;">
+              <span style="color:var(--text-dim);font-size:12px;">ประเภท</span>
+              <span id="billType" style="font-weight:600;">-</span>
+            </div>
+            <div class="rcpt-line">
+              <span style="color:var(--text-dim);font-size:12px;">หมวดหมู่</span>
+              <span id="billCategory">-</span>
+            </div>
+            <div class="rcpt-line">
+              <span style="color:var(--text-dim);font-size:12px;">ช่องทางชำระ</span>
+              <span id="billPaymentMethod">-</span>
+            </div>
+            <div class="rcpt-line">
+              <span style="color:var(--text-dim);font-size:12px;">หมายเหตุ</span>
+              <span id="billNote">-</span>
+            </div>
+            <div id="billTagsRow" class="rcpt-line">
+              <span style="color:var(--text-dim);font-size:12px;">แท็ก</span>
+              <span id="billTags" style="color:var(--accent-primary);">-</span>
+            </div>
+          </div>
+
+          <div class="rcpt-totals-box margin-top-md" id="txBillTotalsBox">
+            <div class="rcpt-line grand">
+              <span id="billAmountLabel">จำนวนเงิน:</span>
+              <span id="billAmount" class="text-emerald" style="font-size:18px;font-weight:700;">₭0</span>
+            </div>
+            <!-- Net Profit section (only for income) -->
+            <div id="billNetProfitSection" class="hidden">
+              <div class="rcpt-line" style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border-color);">
+                <span style="color:var(--text-dim);font-size:12px;">ราคาขาย:</span>
+                <span id="billSellingPrice" class="text-emerald">₭0</span>
+              </div>
+              <div class="rcpt-line">
+                <span style="color:var(--text-dim);font-size:12px;">ต้นทุน:</span>
+                <span id="billLinkedCost" class="text-amber">₭0</span>
+              </div>
+              <div class="rcpt-line grand" style="background:linear-gradient(135deg,rgba(16,185,129,0.12),rgba(16,185,129,0.04));border-radius:8px;padding:8px 12px;margin-top:6px;">
+                <span style="font-weight:700;">กำไรสุทธิ (Net Profit):</span>
+                <span id="billNetProfit" style="font-size:18px;font-weight:800;">₭0</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="rcpt-footer text-center margin-top-md">
+            <p style="font-size: 11px; color: var(--text-muted);">*** Kila BizAccount – ระบบบัญชีชุดฟุตบอล ***</p>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button id="btnPrintTxBill" class="btn btn-primary">
+            <i class="fa-solid fa-print"></i> พิมพ์บิล (Print Bill)
+          </button>
+          <button id="btnCloseTxBillModal2" class="btn btn-secondary">ปิด</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: เงินในบัญชีจริง (Actual Bank Balance) -->
+    <div id="actualBalModal" class="modal-overlay hidden">
+      <div class="modal-card glass-card modal-sm">
+        <div class="modal-header">
+          <h3><i class="fa-solid fa-building-columns"></i> บันทึกเงินในบัญชีจริง (KIP ₭)</h3>
+          <button id="btnCloseActualBalModal" class="btn-close">&times;</button>
+        </div>
+        <form id="actualBalForm">
+          <div class="form-group" style="margin-top:12px;">
+            <label style="font-size:13px;color:var(--text-secondary);">ยอดเงินในบัญชีธนาคาร / กระเป๋าเงินจริง ณ วันนี้</label>
+            <input type="number" id="actualBalAmount" class="form-control" placeholder="0" min="0" step="any" required
+              style="font-size:20px;font-weight:700;text-align:right;color:#818cf8;">
+            <small style="color:var(--text-dim);margin-top:6px;display:block;">
+              <i class="fa-solid fa-circle-info"></i>
+              กรอกยอดเงินจริงจากธนาคารหรือแอปโอนเงิน เพื่อเปรียบเทียบกับยอดที่ระบบคำนวณ
+            </small>
+          </div>
+          <div class="modal-footer">
+            <button type="button" id="btnCancelActualBalModal" class="btn btn-secondary">ยกเลิก</button>
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> บันทึก</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal: ยืนยันล้างข้อมูลทั้งหมด -->
+    <div id="clearDataModal" class="modal-overlay hidden">
+      <div class="modal-card glass-card modal-sm">
+        <div class="modal-header" style="border-bottom:1px solid rgba(239,68,68,0.3);">
+          <h3 style="color:var(--expense-color);"><i class="fa-solid fa-triangle-exclamation"></i> ยืนยันล้างข้อมูลทั้งหมด</h3>
+          <button id="btnCloseClearModal" class="btn-close">&times;</button>
+        </div>
+        <div style="padding:20px;text-align:center;">
+          <div style="font-size:48px;margin-bottom:12px;">⚠️</div>
+          <p style="font-size:15px;font-weight:600;color:var(--text-primary);margin-bottom:8px;">
+            คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลทั้งหมด?
+          </p>
+          <p style="font-size:13px;color:var(--text-dim);margin-bottom:20px;">
+            รายการรับ-จ่าย, ต้นทุน, สต็อกชุดบอล และยอดเงินทั้งหมด<br>
+            จะถูกลบออกอย่างถาวร และไม่สามารถกู้คืนได้
+          </p>
+          <div style="display:flex;gap:12px;justify-content:center;">
+            <button id="btnCancelClearData" class="btn btn-secondary btn-lg">ยกเลิก</button>
+            <button id="btnConfirmClearData" class="btn btn-lg" style="background:var(--expense-color);color:#fff;border:none;">
+              <i class="fa-solid fa-trash-can"></i> ยืนยัน ล้างข้อมูลทั้งหมด
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+  </div>
+
+  <script type="module" src="/src/js/app.js"></script>
+</body>
+</html>
