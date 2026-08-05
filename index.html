@@ -1272,17 +1272,27 @@
           </div>
 
           <!-- Select Stock Product & Qty -->
-          <div class="form-row grid-col-2">
-            <div class="form-group">
-              <label><i class="fa-solid fa-shirt"></i> เลือกชุดบอลจากสต็อก</label>
-              <select id="codStockItemId" class="form-control select-control" required>
-                <option value="">-- เลือกสินค้าจากสต็อก --</option>
-              </select>
+          <div class="form-group">
+            <label><i class="fa-solid fa-shirt"></i> เลือกชุดบอลจากสต็อก (พิมพ์ค้นหา & แสดงรูปเหมือน POS)</label>
+            <div class="input-with-icon margin-bottom-xs" style="margin-bottom:8px;">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="codStockSearch" placeholder="พิมพ์ค้นหาชื่อชุดบอล, ทีม, หรือไซส์..." class="form-control">
             </div>
-            <div class="form-group">
-              <label>จำนวนชุด (Qty)</label>
-              <input type="number" id="codQty" class="form-control" value="1" min="1" required>
+
+            <!-- Product Visual Cards Selector Container (POS Style) -->
+            <div id="codProductSelectorGrid" class="cod-prod-selector-grid margin-bottom-sm" style="max-height:180px; overflow-y:auto; display:grid; grid-template-columns:repeat(2, 1fr); gap:8px; margin-bottom:12px; padding:4px;">
+              <!-- Rendered dynamically by cod.js -->
             </div>
+
+            <!-- Hidden/Fallback Select Control -->
+            <select id="codStockItemId" class="form-control select-control hidden" required>
+              <option value="">-- เลือกสินค้าจากสต็อก --</option>
+            </select>
+          </div>
+
+          <div class="form-group margin-bottom-md">
+            <label>จำนวนชุด (Qty)</label>
+            <input type="number" id="codQty" class="form-control" value="1" min="1" required>
           </div>
 
           <!-- Live Preview Box of Calculated Cost, Selling Price, and Profit -->

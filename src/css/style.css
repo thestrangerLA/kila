@@ -919,3 +919,71 @@ code {
     grid-template-columns: 1fr;
   }
 }
+
+/* POS-Style Mini Product Selector Cards inside COD Modal */
+.cod-prod-card-mini {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.cod-prod-card-mini:hover {
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.cod-prod-card-mini.active {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid #10b981;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+}
+
+.cod-prod-mini-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: var(--accent-primary);
+  flex-shrink: 0;
+}
+
+.cod-prod-mini-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.cod-prod-mini-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cod-prod-mini-meta {
+  font-size: 10px;
+  color: var(--text-dim);
+  display: flex;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.cod-prod-mini-price {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--income-color);
+  text-align: right;
+  flex-shrink: 0;
+}

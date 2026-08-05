@@ -25,12 +25,12 @@ class App {
     this.stockStatusFilter = 'all';
     this.editingStockId = null;
 
-    // COD Tracking State & Filters (Default to 'all' so past pending COD orders like July show up)
+    // COD Tracking State & Filters (Default to Auto Current Month & Year)
     this.codSearchQuery = '';
     this.codCourierFilter = 'all';
     this.codStatusFilter = 'all';
-    this.codMonth = 'all';
-    this.codYear = 'all';
+    this.codMonth = currentMonth;
+    this.codYear = currentYear;
     this.codDate = 'all';
     this.editingCODId = null;
 
@@ -446,11 +446,16 @@ class App {
     document.getElementById('btnOpenAddCODModal')?.addEventListener('click', () => {
       this.editingCODId = null;
       document.getElementById('codForm').reset();
+      const s = document.getElementById('codStockSearch'); if (s) s.value = '';
       populateStockDropdownInCODModal();
       document.getElementById('codModalTitle').innerHTML = '<i class="fa-solid fa-truck-fast"></i> บันทึกรายการ COD ขนส่ง';
       document.getElementById('codDate').value = new Date().toISOString().split('T')[0];
       updateCODPricePreview();
       this.openModal('codModal');
+    });
+
+    document.getElementById('codStockSearch')?.addEventListener('input', (e) => {
+      populateStockDropdownInCODModal(e.target.value);
     });
 
     document.getElementById('codStockItemId')?.addEventListener('change', updateCODPricePreview);
@@ -922,6 +927,7 @@ class App {
     this.editingCODId = id;
     document.getElementById('codModalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> แก้ไขรายการ COD';
 
+    const s = document.getElementById('codStockSearch'); if (s) s.value = '';
     populateStockDropdownInCODModal();
 
     document.getElementById('codCourier').value = order.courier;

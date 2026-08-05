@@ -8,15 +8,22 @@ export function renderCODView(searchQuery = '', courierFilter = 'all', statusFil
   populateStockDropdownInCODModal();
 }
 
-// Populate Stock Items in COD Modal Dropdown
-export function populateStockDropdownInCODModal() {
+// Populate Stock Items in COD Modal Visual Selector & Fallback Dropdown
+export function populateStockDropdownInCODModal(searchQuery = '') {
   const sel = document.getElementById('codStockItemId');
+  const grid = document.getElementById('codProductSelectorGrid');
   if (!sel) return;
 
-  const current = sel.value;
+  const currentSelectedId = sel.value;
   sel.innerHTML = '<option value="">-- เลือกสินค้าจากสต็อก --</option>';
 
-  store.inventory.forEach(item => {
+  const items = store.getFilteredInventory({
+    search: searchQuery,
+    size: 'all',
+    status: 'all'
+  });
+
+  items.forEach(item => {
     const opt = document.createElement('option');
     opt.value = item.id;
     opt.dataset.cost = item.costPrice || 0;
@@ -26,8 +33,53 @@ export function populateStockDropdownInCODModal() {
     sel.appendChild(opt);
   });
 
-  if (current && sel.querySelector(`option[value="${current}"]`)) {
-    sel.value = current;
+  if (currentSelectedId && sel.querySelector(`option[value="${currentSelectedId}"]`)) {
+    sel.value = currentSelectedId;
+  }
+
+  // Render Visual POS-Style Mini Cards in COD Modal
+  if (grid) {
+    if (items.length === 0) {
+      grid.innerHTML = '<div style="grid-column:span 2; padding:12px; text-align:center; color:var(--text-dim); font-size:12px;"><i class="fa-solid fa-box-open"></i> ไม่พบชุดบอลในสต็อก</div>';
+      return;
+    }
+
+    grid.innerHTML = items.map(item => {
+      const isSelected = item.id === sel.value;
+
+      return `
+        <div class="cod-prod-card-mini ${isSelected ? 'active' : ''}" data-id="${item.id}" data-cost="${item.costPrice}" data-sell="${item.sellingPrice}" data-name="${item.name} (${item.size})">
+          <div class="cod-prod-mini-icon">
+            <i class="fa-solid fa-shirt"></i>
+          </div>
+          <div class="cod-prod-mini-info">
+            <div class="cod-prod-mini-title">${item.name}</div>
+            <div class="cod-prod-mini-meta">
+              <span class="size-pill" style="font-size:9px; padding:1px 5px;">${item.size}</span>
+              <span><i class="fa-solid fa-shield-halved"></i> ${item.team}</span>
+            </div>
+          </div>
+          <div class="cod-prod-mini-price">
+            <div>₭${(item.sellingPrice || 0).toLocaleString()}</div>
+            <small style="font-size:9px; color:var(--text-dim);">เหลือ ${item.stockQty}</small>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Attach Click Event to Mini Cards
+    grid.querySelectorAll('.cod-prod-card-mini').forEach(card => {
+      card.addEventListener('click', () => {
+        const id = card.dataset.id;
+        sel.value = id;
+
+        grid.querySelectorAll('.cod-prod-card-mini').forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+
+        // Trigger change event to update live price preview
+        sel.dispatchEvent(new Event('change'));
+      });
+    });
   }
 }
 
@@ -130,6 +182,7 @@ export function renderCODTable(searchQuery = '', courierFilter = 'all', statusFi
 
   sortedDates.forEach(dateStr => {
     const dateOrders = groupedByDate[dateStr];
+    const totalCount = dateOrders.length;
     let pendingCount = 0;
     let pendingAmount = 0;
     let totalProfit = 0;
@@ -146,20 +199,20 @@ export function renderCODTable(searchQuery = '', courierFilter = 'all', statusFi
       }
     });
 
-    // Date Dropdown Header Row
+    // Date Dropdown Header Row showing pending order ratio (e.g. ค้างโอน: 1/2 order)
     html += `
       <tr class="cod-date-group-header" data-date="${dateStr}">
-        <td colspan="9" style="padding:10px 16px; background:rgba(30,41,59,0.7); cursor:pointer; border-bottom:1px solid var(--glass-border);">
+        <td colspan="9" style="padding:10px 16px; background:rgba(30,41,59,0.85); cursor:pointer; border-bottom:1px solid var(--glass-border);">
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
             <div style="display:flex; align-items:center; gap:8px;">
               <i class="fa-solid fa-chevron-down cod-date-toggle-icon" style="transition:transform 0.2s ease; color:var(--accent-primary);"></i>
               <i class="fa-solid fa-calendar-day" style="color:var(--accent-primary);"></i>
               <strong style="font-size:14px; color:var(--text-primary);">${dateStr}</strong>
-              <small style="color:var(--text-dim);">(${dateOrders.length} รายการ)</small>
+              <small style="color:var(--text-dim);">(${totalCount} รายการ)</small>
             </div>
             <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:12px;">
               <span style="background:rgba(239,68,68,0.12); color:#f87171; border:1px solid rgba(239,68,68,0.3); padding:3px 10px; border-radius:12px; font-weight:600;">
-                ค้างโอน: ${pendingCount} order (₭${pendingAmount.toLocaleString()})
+                ค้างโอน: ${pendingCount}/${totalCount} order (₭${pendingAmount.toLocaleString()})
               </span>
               <span style="background:rgba(16,185,129,0.12); color:#34d399; border:1px solid rgba(16,185,129,0.3); padding:3px 10px; border-radius:12px; font-weight:600;">
                 กำไรวันนั้น: ₭${totalProfit.toLocaleString()}
@@ -214,25 +267,33 @@ export function renderCODTable(searchQuery = '', courierFilter = 'all', statusFi
 
   tbody.innerHTML = html;
 
-  // Attach Collapsible Group Header Toggle Event
+  // Attach Collapsible Group Header Toggle Event reliably
   tbody.querySelectorAll('.cod-date-group-header').forEach(headerRow => {
     headerRow.addEventListener('click', (e) => {
+      // Don't toggle if clicking an inner action button
+      if (e.target.closest('button')) return;
+
       const dateStr = headerRow.dataset.date;
       const icon = headerRow.querySelector('.cod-date-toggle-icon');
       const itemRows = tbody.querySelectorAll(`.cod-item-row[data-date-group="${dateStr}"]`);
 
-      let isCollapsed = false;
+      let willHide = false;
       itemRows.forEach(row => {
-        if (row.classList.contains('hidden')) {
-          row.classList.remove('hidden');
-        } else {
+        if (!row.classList.contains('hidden')) {
+          willHide = true;
+        }
+      });
+
+      itemRows.forEach(row => {
+        if (willHide) {
           row.classList.add('hidden');
-          isCollapsed = true;
+        } else {
+          row.classList.remove('hidden');
         }
       });
 
       if (icon) {
-        icon.style.transform = isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)';
+        icon.style.transform = willHide ? 'rotate(-90deg)' : 'rotate(0deg)';
       }
     });
   });
