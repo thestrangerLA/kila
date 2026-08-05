@@ -325,6 +325,7 @@ class BizStore {
     let totalIncome = 0;
     let totalExpense = 0;
     let totalCost = 0;
+    let directCostPaid = 0; // ยอดจ่ายออกจริงสำหรับรายการประเภท cost
 
     this.transactions.forEach(t => {
       const amt = t.amount || 0;
@@ -334,13 +335,20 @@ class BizStore {
           totalCost += t.linkedCost;
         }
       }
-      else if (t.type === 'expense') totalExpense += amt;
-      else if (t.type === 'cost') totalCost += amt;
+      else if (t.type === 'expense') {
+        totalExpense += amt;
+      }
+      else if (t.type === 'cost') {
+        totalCost += amt;
+        directCostPaid += amt;
+      }
     });
 
     const totalOutflow = totalExpense + totalCost;
     const netProfit = totalIncome - totalOutflow;
-    const cashBalance = this.initialBalance + totalIncome - (totalExpense + totalCost);
+
+    // เงินสดคงเหลือสะสมจริงในมือ/ธนาคาร = เงินสดตั้งต้น + รายรับรวมทั้งหมด - รายจ่าย - ต้นทุนที่จ่ายออกจริง
+    const cashBalance = this.initialBalance + totalIncome - totalExpense - directCostPaid;
     const profitMargin = totalIncome > 0 ? (netProfit / totalIncome) * 100 : 0;
 
     let totalStockQty = 0;
