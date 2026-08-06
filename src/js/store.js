@@ -186,6 +186,7 @@ class BizStore {
       sellingPrice: parseFloat(item.sellingPrice) || 0,
       stockQty: parseInt(item.stockQty, 10) || 0,
       minQty: parseInt(item.minQty, 10) || 5,
+      image: item.image || '',
       note: item.note || ''
     };
 
@@ -204,7 +205,8 @@ class BizStore {
         costPrice: parseFloat(updatedData.costPrice) || 0,
         sellingPrice: parseFloat(updatedData.sellingPrice) || 0,
         stockQty: parseInt(updatedData.stockQty, 10) || 0,
-        minQty: parseInt(updatedData.minQty, 10) || 5
+        minQty: parseInt(updatedData.minQty, 10) || 5,
+        image: updatedData.image !== undefined ? updatedData.image : this.inventory[idx].image
       };
       this.saveToStorage();
       this.notify();

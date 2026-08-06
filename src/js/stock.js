@@ -29,12 +29,21 @@ export function renderStockView(searchQuery = '', sizeFilter = 'all', statusFilt
 
     const totalValCost = item.stockQty * item.costPrice;
 
+    const imgHtml = item.image
+      ? `<img src="${item.image}" alt="${item.name}" style="width:38px; height:38px; border-radius:6px; object-fit:cover; border:1px solid var(--border-color); flex-shrink:0;">`
+      : `<div style="width:38px; height:38px; border-radius:6px; background:rgba(99,102,241,0.15); color:var(--primary); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><i class="fa-solid fa-shirt"></i></div>`;
+
     return `
       <tr>
         <td><code>${item.code}</code></td>
         <td>
-          <strong>${item.name}</strong>
-          <div style="font-size: 11px; color: var(--text-dim);"><i class="fa-solid fa-shield-halved"></i> ทีม: ${item.team}</div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            ${imgHtml}
+            <div>
+              <strong>${item.name}</strong>
+              <div style="font-size: 11px; color: var(--text-dim);"><i class="fa-solid fa-shield-halved"></i> ทีม: ${item.team}</div>
+            </div>
+          </div>
         </td>
         <td><span class="size-pill">${item.size}</span></td>
         <td class="text-right">₭${item.costPrice.toLocaleString()}</td>

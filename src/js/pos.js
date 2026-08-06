@@ -178,7 +178,7 @@ class POSManager {
           </div>
 
           <div class="pos-card-icon">
-            <i class="fa-solid fa-shirt"></i>
+            ${item.image ? `<img src="${item.image}" alt="${item.name}" style="width:100%; height:90px; object-fit:cover; border-radius:8px;">` : `<i class="fa-solid fa-shirt"></i>`}
           </div>
 
           <div class="pos-card-body">

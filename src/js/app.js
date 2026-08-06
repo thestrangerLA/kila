@@ -345,9 +345,25 @@ class App {
     document.getElementById('btnOpenAddStockModal')?.addEventListener('click', () => {
       this.editingStockId = null;
       document.getElementById('stockForm').reset();
+      this.resetStockImagePreview('');
       document.getElementById('stockModalTitle').innerHTML = '<i class="fa-solid fa-shirt"></i> เพิ่มรายการชุดฟุตบอลเข้าสต็อก';
       document.getElementById('stkCode').value = 'FB-' + Math.floor(1000 + Math.random() * 9000);
       this.openModal('stockModal');
+    });
+
+    document.getElementById('stkImageFile')?.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          this.resetStockImagePreview(evt.target.result);
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    document.getElementById('btnRemoveStkImage')?.addEventListener('click', () => {
+      this.resetStockImagePreview('');
     });
 
     document.getElementById('btnCloseStockModal')?.addEventListener('click', () => this.closeModal('stockModal'));
@@ -364,6 +380,7 @@ class App {
         sellingPrice: parseFloat(document.getElementById('stkSellingPrice').value) || 0,
         stockQty: parseInt(document.getElementById('stkStockQty').value, 10) || 0,
         minQty: parseInt(document.getElementById('stkMinQty').value, 10) || 5,
+        image: document.getElementById('stkImageBase64')?.value || '',
         note: document.getElementById('stkNote').value
       };
 
@@ -1128,6 +1145,27 @@ class App {
     this.openModal('stockAdjustModal');
   }
 
+  resetStockImagePreview(imageSrc = '') {
+    const hiddenInput = document.getElementById('stkImageBase64');
+    const fileInput = document.getElementById('stkImageFile');
+    const imgPreview = document.getElementById('stkImagePreview');
+    const placeholder = document.getElementById('stkImagePlaceholder');
+    const removeBtn = document.getElementById('btnRemoveStkImage');
+
+    if (fileInput) fileInput.value = '';
+    if (hiddenInput) hiddenInput.value = imageSrc || '';
+
+    if (imageSrc) {
+      if (imgPreview) { imgPreview.src = imageSrc; imgPreview.style.display = 'block'; }
+      if (placeholder) placeholder.style.display = 'none';
+      if (removeBtn) removeBtn.classList.remove('hidden');
+    } else {
+      if (imgPreview) { imgPreview.src = ''; imgPreview.style.display = 'none'; }
+      if (placeholder) placeholder.style.display = 'block';
+      if (removeBtn) removeBtn.classList.add('hidden');
+    }
+  }
+
   editStockItem(id) {
     const item = store.inventory.find(i => i.id === id);
     if (!item) return;
@@ -1144,6 +1182,8 @@ class App {
     document.getElementById('stkStockQty').value = item.stockQty;
     document.getElementById('stkMinQty').value = item.minQty || 5;
     document.getElementById('stkNote').value = item.note || '';
+
+    this.resetStockImagePreview(item.image || '');
 
     this.openModal('stockModal');
   }
