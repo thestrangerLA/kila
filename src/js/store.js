@@ -176,17 +176,23 @@ class BizStore {
 
   // Football Kits Inventory Stock Management
   addStockItem(item) {
+    const team = (item.team || '').trim() || 'ทั่วไป';
+    const kitType = item.kitType || 'Home';
+    const kitLabel = kitType === 'Away' ? 'เยือน' : kitType === 'Third' ? 'เยือน 3' : kitType === 'Special' ? 'พิเศษ' : 'เหย้า';
+    const fallbackName = team !== 'ทั่วไป' ? `${team} (${kitLabel})` : `ชุดฟุตบอล (${kitLabel})`;
+    const name = (item.name || '').trim() || fallbackName;
+
     const newItem = {
       id: 'stk-' + Date.now(),
       code: item.code || ('FB-' + Math.floor(1000 + Math.random() * 9000)),
-      name: item.name || 'ชุดฟุตบอลใหม่',
-      team: item.team || 'ทั่วไป',
+      name: name,
+      team: team,
       size: item.size || 'M',
       costPrice: parseFloat(item.costPrice) || 0,
       sellingPrice: parseFloat(item.sellingPrice) || 0,
       stockQty: parseInt(item.stockQty, 10) || 0,
       minQty: parseInt(item.minQty, 10) || 5,
-      kitType: item.kitType || 'Home',
+      kitType: kitType,
       season: item.season || '2026/2027',
       image: item.image || '',
       note: item.note || ''
@@ -201,16 +207,25 @@ class BizStore {
   updateStockItem(id, updatedData) {
     const idx = this.inventory.findIndex(i => i.id === id);
     if (idx !== -1) {
+      const existing = this.inventory[idx];
+      const team = (updatedData.team !== undefined ? updatedData.team : existing.team || '').trim() || 'ทั่วไป';
+      const kitType = updatedData.kitType || existing.kitType || 'Home';
+      const kitLabel = kitType === 'Away' ? 'เยือน' : kitType === 'Third' ? 'เยือน 3' : kitType === 'Special' ? 'พิเศษ' : 'เหย้า';
+      const fallbackName = team !== 'ทั่วไป' ? `${team} (${kitLabel})` : `ชุดฟุตบอล (${kitLabel})`;
+      const name = (updatedData.name !== undefined ? updatedData.name : existing.name || '').trim() || fallbackName;
+
       this.inventory[idx] = {
-        ...this.inventory[idx],
+        ...existing,
         ...updatedData,
+        name: name,
+        team: team,
         costPrice: parseFloat(updatedData.costPrice) || 0,
         sellingPrice: parseFloat(updatedData.sellingPrice) || 0,
         stockQty: parseInt(updatedData.stockQty, 10) || 0,
         minQty: parseInt(updatedData.minQty, 10) || 5,
-        kitType: updatedData.kitType || this.inventory[idx].kitType || 'Home',
-        season: updatedData.season || this.inventory[idx].season || '2026/2027',
-        image: updatedData.image !== undefined ? updatedData.image : this.inventory[idx].image
+        kitType: kitType,
+        season: updatedData.season || existing.season || '2026/2027',
+        image: updatedData.image !== undefined ? updatedData.image : existing.image
       };
       this.saveToStorage();
       this.notify();
