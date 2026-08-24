@@ -195,7 +195,7 @@ export function populateStockDropdownInCODModal(searchQuery = '') {
             <div class="cod-prod-mini-title">${item.name}</div>
             <div class="cod-prod-mini-meta">
               <span class="size-pill" style="font-size:9px; padding:1px 5px;">${item.size}</span>
-              <span><i class="fa-solid fa-shield-halved"></i> ${item.team}</span>
+              <span><i class="fa-solid fa-shield-halved"></i> ${item.team} (${item.kitType === 'Away' ? 'เยือน' : item.kitType === 'Third' ? 'เยือน 3' : item.kitType === 'Special' ? 'พิเศษ' : 'เหย้า'})</span>
             </div>
           </div>
           <div class="cod-prod-mini-price">

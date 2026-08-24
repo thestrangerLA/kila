@@ -33,6 +33,15 @@ export function renderStockView(searchQuery = '', sizeFilter = 'all', statusFilt
       ? `<img src="${item.image}" alt="${item.name}" style="width:38px; height:38px; border-radius:6px; object-fit:cover; border:1px solid var(--border-color); flex-shrink:0;">`
       : `<div style="width:38px; height:38px; border-radius:6px; background:rgba(99,102,241,0.15); color:var(--primary); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><i class="fa-solid fa-shirt"></i></div>`;
 
+    const kitTypeMap = {
+      Home: '🏠 เหย้า',
+      Away: '✈️ เยือน',
+      Third: '🛡️ เยือน 3',
+      Special: '⭐ พิเศษ'
+    };
+    const kitLabel = kitTypeMap[item.kitType] || item.kitType || '🏠 เหย้า';
+    const seasonLabel = item.season || '2026/2027';
+
     return `
       <tr>
         <td><code>${item.code}</code></td>
@@ -41,7 +50,11 @@ export function renderStockView(searchQuery = '', sizeFilter = 'all', statusFilt
             ${imgHtml}
             <div>
               <strong>${item.name}</strong>
-              <div style="font-size: 11px; color: var(--text-dim);"><i class="fa-solid fa-shield-halved"></i> ทีม: ${item.team}</div>
+              <div style="font-size: 11px; color: var(--text-dim); display:flex; gap:6px; align-items:center; margin-top:2px; flex-wrap:wrap;">
+                <span><i class="fa-solid fa-shield-halved"></i> ${item.team}</span>
+                <span style="background:rgba(99,102,241,0.12); color:#818cf8; border:1px solid rgba(99,102,241,0.25); padding:1px 6px; border-radius:4px; font-size:10px;">${kitLabel}</span>
+                <span style="background:rgba(255,255,255,0.06); color:var(--text-secondary); border:1px solid var(--border-color); padding:1px 6px; border-radius:4px; font-size:10px;">${seasonLabel}</span>
+              </div>
             </div>
           </div>
         </td>

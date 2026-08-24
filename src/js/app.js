@@ -376,6 +376,8 @@ class App {
         name: document.getElementById('stkName').value,
         team: document.getElementById('stkTeam').value,
         size: document.getElementById('stkSize').value,
+        kitType: document.getElementById('stkKitType')?.value || 'Home',
+        season: document.getElementById('stkSeason')?.value || '2026/2027',
         costPrice: parseFloat(document.getElementById('stkCostPrice').value) || 0,
         sellingPrice: parseFloat(document.getElementById('stkSellingPrice').value) || 0,
         stockQty: parseInt(document.getElementById('stkStockQty').value, 10) || 0,
@@ -1177,6 +1179,8 @@ class App {
     document.getElementById('stkName').value = item.name;
     document.getElementById('stkTeam').value = item.team;
     document.getElementById('stkSize').value = item.size;
+    const kitSelect = document.getElementById('stkKitType'); if (kitSelect) kitSelect.value = item.kitType || 'Home';
+    const seasonSelect = document.getElementById('stkSeason'); if (seasonSelect) seasonSelect.value = item.season || '2026/2027';
     document.getElementById('stkCostPrice').value = item.costPrice;
     document.getElementById('stkSellingPrice').value = item.sellingPrice;
     document.getElementById('stkStockQty').value = item.stockQty;

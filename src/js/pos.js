@@ -182,7 +182,12 @@ class POSManager {
           </div>
 
           <div class="pos-card-body">
-            <div class="pos-team-tag"><i class="fa-solid fa-shield-halved"></i> ${item.team}</div>
+            <div class="pos-team-tag" style="display:flex; justify-content:space-between; align-items:center;">
+              <span><i class="fa-solid fa-shield-halved"></i> ${item.team}</span>
+              <span style="font-size:9px; background:rgba(99,102,241,0.15); color:#818cf8; padding:1px 4px; border-radius:3px; font-weight:600;">
+                ${item.kitType === 'Away' ? '✈️ เยือน' : item.kitType === 'Third' ? '🛡️ เยือน 3' : item.kitType === 'Special' ? '⭐ พิเศษ' : '🏠 เหย้า'} ${item.season || ''}
+              </span>
+            </div>
             <h4 class="pos-prod-title">${item.name}</h4>
             <div class="pos-prod-price">₭${item.sellingPrice.toLocaleString()}</div>
           </div>

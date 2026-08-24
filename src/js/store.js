@@ -186,6 +186,8 @@ class BizStore {
       sellingPrice: parseFloat(item.sellingPrice) || 0,
       stockQty: parseInt(item.stockQty, 10) || 0,
       minQty: parseInt(item.minQty, 10) || 5,
+      kitType: item.kitType || 'Home',
+      season: item.season || '2026/2027',
       image: item.image || '',
       note: item.note || ''
     };
@@ -206,6 +208,8 @@ class BizStore {
         sellingPrice: parseFloat(updatedData.sellingPrice) || 0,
         stockQty: parseInt(updatedData.stockQty, 10) || 0,
         minQty: parseInt(updatedData.minQty, 10) || 5,
+        kitType: updatedData.kitType || this.inventory[idx].kitType || 'Home',
+        season: updatedData.season || this.inventory[idx].season || '2026/2027',
         image: updatedData.image !== undefined ? updatedData.image : this.inventory[idx].image
       };
       this.saveToStorage();
@@ -465,8 +469,10 @@ class BizStore {
         const inName = item.name.toLowerCase().includes(q);
         const inTeam = item.team.toLowerCase().includes(q);
         const inCode = item.code.toLowerCase().includes(q);
+        const inKit = (item.kitType || '').toLowerCase().includes(q);
+        const inSeason = (item.season || '').toLowerCase().includes(q);
         const inNote = item.note.toLowerCase().includes(q);
-        if (!inName && !inTeam && !inCode && !inNote) return false;
+        if (!inName && !inTeam && !inCode && !inKit && !inSeason && !inNote) return false;
       }
       return true;
     });
