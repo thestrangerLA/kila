@@ -188,8 +188,8 @@ export function populateStockDropdownInCODModal(searchQuery = '') {
 
       return `
         <div class="cod-prod-card-mini ${cartQty > 0 ? 'active' : ''}" data-id="${item.id}">
-          <div class="cod-prod-mini-icon">
-            ${item.image ? `<img src="${item.image}" alt="${item.name}" style="width:28px; height:28px; border-radius:4px; object-fit:cover;">` : `<i class="fa-solid fa-shirt"></i>`}
+          <div class="cod-prod-mini-icon" style="width:44px; height:44px;">
+            ${item.image ? `<img src="${item.image}" alt="${item.name}" style="width:44px; height:44px; border-radius:6px; object-fit:cover;">` : `<i class="fa-solid fa-shirt"></i>`}
           </div>
           <div class="cod-prod-mini-info">
             <div class="cod-prod-mini-title">${item.name}</div>
