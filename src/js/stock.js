@@ -67,13 +67,7 @@ export function renderStockView(searchQuery = '', sizeFilter = 'all', statusFilt
         <td class="text-right">₭${totalValCost.toLocaleString()}</td>
         <td class="text-center">${statusBadge}</td>
         <td class="text-center">
-          <div class="action-btns">
-            <button class="btn btn-sm btn-primary btn-stock-out" data-id="${item.id}" title="ขายสินค้า (ตัดสต็อก)">
-              <i class="fa-solid fa-cart-shopping"></i> ขาย
-            </button>
-            <button class="btn btn-sm btn-secondary btn-stock-in" data-id="${item.id}" title="เติมสต็อกสินค้า">
-              <i class="fa-solid fa-boxes-packing"></i> เติม
-            </button>
+          <div class="action-btns" style="justify-content:center;">
             <button class="btn btn-icon btn-sm btn-edit-stock" data-id="${item.id}" title="แก้ไขข้อมูล">
               <i class="fa-solid fa-pen"></i>
             </button>
