@@ -3,11 +3,12 @@ import { store } from './store.js';
 
 const STORAGE_KEY_FIREBASE_URL = 'kila_firebase_url';
 const STORAGE_KEY_FIREBASE_AUTOSYNC = 'kila_firebase_autosync';
+const DEFAULT_FIREBASE_URL = 'https://kaset-stock-manager-default-rtdb.firebaseio.com/';
 
 class FirebaseSyncManager {
   constructor() {
-    this.databaseUrl = localStorage.getItem(STORAGE_KEY_FIREBASE_URL) || '';
-    this.autoSyncEnabled = localStorage.getItem(STORAGE_KEY_FIREBASE_AUTOSYNC) === 'true';
+    this.databaseUrl = localStorage.getItem(STORAGE_KEY_FIREBASE_URL) || DEFAULT_FIREBASE_URL;
+    this.autoSyncEnabled = localStorage.getItem(STORAGE_KEY_FIREBASE_AUTOSYNC) !== 'false';
     this.eventSource = null;
     this.isSyncing = false;
 
