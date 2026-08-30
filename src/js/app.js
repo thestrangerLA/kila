@@ -5,6 +5,7 @@ import { exportToCSV, printFinancialReport, exportJSONBackup } from './export.js
 import { renderStockView } from './stock.js';
 import { posManager } from './pos.js';
 import { renderCODView, populateStockDropdownInCODModal, clearCODModalCart, setCODModalCart, codModalCart } from './cod.js';
+import { firebaseSync } from './firebase.js';
 
 // App Controller
 class App {
@@ -121,6 +122,80 @@ class App {
       store.setActualBalance(val);
       this.closeModal('actualBalModal');
       this.showToast('บันทึกเงินในบัญชีจริงเรียบร้อย!');
+    });
+
+    // 4b. Firebase Cloud Sync Settings Modal & Data Upload
+    const statusLogEl = document.getElementById('firebaseSyncStatusLog');
+
+    document.getElementById('btnFirebaseStatus')?.addEventListener('click', () => {
+      const urlInput = document.getElementById('firebaseDatabaseUrl');
+      const chkAuto = document.getElementById('chkFirebaseAutoSync');
+      if (urlInput) urlInput.value = firebaseSync.databaseUrl || '';
+      if (chkAuto) chkAuto.checked = firebaseSync.autoSyncEnabled;
+      if (statusLogEl) statusLogEl.style.display = 'none';
+      this.openModal('firebaseModal');
+    });
+
+    document.getElementById('btnCloseFirebaseModal')?.addEventListener('click', () => this.closeModal('firebaseModal'));
+    document.getElementById('btnSaveFirebaseSettings')?.addEventListener('click', () => {
+      const url = document.getElementById('firebaseDatabaseUrl')?.value || '';
+      const auto = document.getElementById('chkFirebaseAutoSync')?.checked;
+      firebaseSync.setDatabaseUrl(url);
+      firebaseSync.setAutoSync(auto);
+      this.closeModal('firebaseModal');
+      this.showToast('บันทึกการตั้งค่า Firebase Cloud Sync เรียบร้อย');
+    });
+
+    document.getElementById('btnUploadToFirebase')?.addEventListener('click', async () => {
+      const url = document.getElementById('firebaseDatabaseUrl')?.value || '';
+      const auto = document.getElementById('chkFirebaseAutoSync')?.checked;
+      firebaseSync.setDatabaseUrl(url);
+      firebaseSync.setAutoSync(auto);
+
+      if (!url) {
+        alert('กรุณากรอก Firebase Database URL ก่อนทำการอัปโหลด (เช่น https://your-project-id-default-rtdb.firebaseio.com/)');
+        return;
+      }
+
+      if (statusLogEl) {
+        statusLogEl.style.display = 'block';
+        statusLogEl.textContent = '⏳ กำลังอัปโหลดข้อมูลทั้งหมดขึ้น Firebase Cloud...';
+      }
+
+      try {
+        await firebaseSync.uploadLocalToCloud();
+        if (statusLogEl) statusLogEl.textContent = '✅ อัปโหลดขึ้น Firebase Cloud สำเร็จเรียบร้อย!';
+        this.showToast('⬆️ อัปโหลดข้อมูลขึ้น Firebase Cloud เรียบร้อยแล้ว!');
+      } catch (err) {
+        if (statusLogEl) statusLogEl.textContent = `❌ ${err.message}`;
+        alert(`อัปโหลดล้มเหลว: ${err.message}`);
+      }
+    });
+
+    document.getElementById('btnDownloadFromFirebase')?.addEventListener('click', async () => {
+      const url = document.getElementById('firebaseDatabaseUrl')?.value || '';
+      const auto = document.getElementById('chkFirebaseAutoSync')?.checked;
+      firebaseSync.setDatabaseUrl(url);
+      firebaseSync.setAutoSync(auto);
+
+      if (!url) {
+        alert('กรุณากรอก Firebase Database URL ก่อนดึงข้อมูล');
+        return;
+      }
+
+      if (statusLogEl) {
+        statusLogEl.style.display = 'block';
+        statusLogEl.textContent = '⏳ กำลังดึงข้อมูลจาก Firebase Cloud ลงเครื่องนี้...';
+      }
+
+      try {
+        await firebaseSync.downloadCloudToLocal();
+        if (statusLogEl) statusLogEl.textContent = '✅ ดึงข้อมูลจาก Firebase Cloud สำเร็จเรียบร้อย!';
+        this.showToast('⬇️ ดึงข้อมูลจาก Firebase Cloud สำเร็จเรียบร้อย!');
+      } catch (err) {
+        if (statusLogEl) statusLogEl.textContent = `❌ ${err.message}`;
+        alert(`ดึงข้อมูลล้มเหลว: ${err.message}`);
+      }
     });
 
     // 4b. Clear All Data

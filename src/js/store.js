@@ -1,4 +1,5 @@
 import { DEFAULT_INITIAL_BALANCE, generateSampleTransactions, generateSampleStock } from './sampleData.js';
+import { firebaseSync } from './firebase.js';
 
 const STORAGE_KEYS = {
   TRANSACTIONS: 'kila_biz_transactions_kip',
