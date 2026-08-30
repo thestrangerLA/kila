@@ -1,186 +1,127 @@
-// Firebase Cloud Sync Manager (Realtime Cross-Device Data Sync)
+// Firebase Cloud Firestore Manager for "kaset-stock-manager"
 import { store } from './store.js';
 
-const STORAGE_KEY_FIREBASE_URL = 'kila_firebase_url';
-const STORAGE_KEY_FIREBASE_AUTOSYNC = 'kila_firebase_autosync';
-const DEFAULT_FIREBASE_URL = 'https://kaset-stock-manager-default-rtdb.firebaseio.com/';
+const STORAGE_KEY_FIREBASE_PROJECT = 'kila_firestore_project_id';
+const STORAGE_KEY_FIREBASE_AUTOSYNC = 'kila_firestore_autosync';
+const DEFAULT_PROJECT_ID = 'kaset-stock-manager';
+const COLLECTION_NAME = 'sports_stockItems';
+const DOCUMENT_ID = 'kila_main_store';
 
-class FirebaseSyncManager {
+class FirebaseFirestoreManager {
   constructor() {
-    this.databaseUrl = localStorage.getItem(STORAGE_KEY_FIREBASE_URL) || DEFAULT_FIREBASE_URL;
+    this.projectId = localStorage.getItem(STORAGE_KEY_FIREBASE_PROJECT) || DEFAULT_PROJECT_ID;
     this.autoSyncEnabled = localStorage.getItem(STORAGE_KEY_FIREBASE_AUTOSYNC) !== 'false';
-    this.eventSource = null;
     this.isSyncing = false;
 
-    this.init();
+    this.updateHeaderStatus(true);
   }
 
-  init() {
-    if (this.databaseUrl && this.autoSyncEnabled) {
-      this.startRealtimeListener();
-    }
-  }
-
-  getCleanUrl() {
-    if (!this.databaseUrl) return '';
-    let url = this.databaseUrl.trim();
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      url = 'https://' + url;
-    }
-    if (!url.endsWith('/')) {
-      url += '/';
-    }
-    return url;
-  }
-
-  setDatabaseUrl(url) {
-    this.databaseUrl = url.trim();
-    localStorage.setItem(STORAGE_KEY_FIREBASE_URL, this.databaseUrl);
-    if (this.databaseUrl && this.autoSyncEnabled) {
-      this.startRealtimeListener();
-    } else {
-      this.stopRealtimeListener();
-    }
+  setProjectId(id) {
+    this.projectId = (id || DEFAULT_PROJECT_ID).trim();
+    localStorage.setItem(STORAGE_KEY_FIREBASE_PROJECT, this.projectId);
   }
 
   setAutoSync(enabled) {
     this.autoSyncEnabled = !!enabled;
     localStorage.setItem(STORAGE_KEY_FIREBASE_AUTOSYNC, this.autoSyncEnabled.toString());
-    if (this.autoSyncEnabled && this.databaseUrl) {
-      this.startRealtimeListener();
-    } else {
-      this.stopRealtimeListener();
-    }
   }
 
-  // Upload all local store data (Transactions, Inventory, COD Orders, Balances) to Firebase
+  getFirestoreEndpoint() {
+    const pId = this.projectId || DEFAULT_PROJECT_ID;
+    return `https://firestore.googleapis.com/v1/projects/${pId}/databases/(default)/documents/${COLLECTION_NAME}/${DOCUMENT_ID}`;
+  }
+
+  // Upload local store state to Cloud Firestore (Collection: sports_stockItems, Document: kila_main_store)
   async uploadLocalToCloud() {
-    const baseUrl = this.getCleanUrl();
-    if (!baseUrl) {
-      throw new Error('กรุณากรอก Firebase Database URL ก่อนอัปโหลด');
-    }
+    const endpoint = this.getFirestoreEndpoint();
 
     const payload = {
-      transactions: store.transactions || [],
-      inventory: store.inventory || [],
-      codOrders: store.codOrders || [],
-      initialBalance: store.initialBalance || 0,
-      actualBalance: store.actualBalance || 0,
-      lastUpdated: new Date().toISOString(),
-      updatedByDevice: navigator.userAgent
+      fields: {
+        transactionsJson: { stringValue: JSON.stringify(store.transactions || []) },
+        inventoryJson:    { stringValue: JSON.stringify(store.inventory || []) },
+        codOrdersJson:    { stringValue: JSON.stringify(store.codOrders || []) },
+        initialBalance:   { doubleValue: store.initialBalance || 0 },
+        actualBalance:    { doubleValue: store.actualBalance || 0 },
+        lastUpdated:      { stringValue: new Date().toISOString() }
+      }
     };
 
-    const targetEndpoint = `${baseUrl}kila_store.json`;
-    const response = await fetch(targetEndpoint, {
-      method: 'PUT',
+    const response = await fetch(endpoint, {
+      method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
 
     if (!response.ok) {
-      throw new Error(`อัปโหลดล้มเหลว HTTP ${response.status}: ${response.statusText}`);
+      const errText = await response.text();
+      throw new Error(`อัปโหลดขึ้น Cloud Firestore ล้มเหลว (${response.status}): ${errText}`);
     }
 
+    this.updateHeaderStatus(true);
     return await response.json();
   }
 
-  // Download store data from Firebase Cloud to local device
+  // Download store state from Cloud Firestore to local device
   async downloadCloudToLocal() {
-    const baseUrl = this.getCleanUrl();
-    if (!baseUrl) {
-      throw new Error('กรุณากรอก Firebase Database URL ก่อนดึงข้อมูล');
-    }
+    const endpoint = this.getFirestoreEndpoint();
 
-    const targetEndpoint = `${baseUrl}kila_store.json`;
-    const response = await fetch(targetEndpoint, {
+    const response = await fetch(endpoint, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }
     });
 
     if (!response.ok) {
-      throw new Error(`ดึงข้อมูลล้มเหลว HTTP ${response.status}: ${response.statusText}`);
+      if (response.status === 404) {
+        throw new Error('ยังไม่พบข้อมูลใน Cloud Firestore (กรุณากดอัปโหลดขึ้น Cloud ครั้งแรกก่อน)');
+      }
+      const errText = await response.text();
+      throw new Error(`ดึงข้อมูลจาก Cloud Firestore ล้มเหลว (${response.status}): ${errText}`);
     }
 
-    const data = await response.json();
-    if (!data) {
-      throw new Error('ไม่พบข้อมูลบน Firebase Cloud (กรุณากดอัปโหลดจากเครื่องแรกก่อน)');
+    const doc = await response.json();
+    if (!doc || !doc.fields) {
+      throw new Error('รูปแบบข้อมูลใน Cloud Firestore ไม่ถูกต้อง');
     }
 
-    // Restore data into BizStore
-    if (Array.isArray(data.transactions)) store.transactions = data.transactions;
-    if (Array.isArray(data.inventory)) store.inventory = data.inventory;
-    if (Array.isArray(data.codOrders)) store.codOrders = data.codOrders;
-    if (data.initialBalance !== undefined) store.initialBalance = parseFloat(data.initialBalance) || 0;
-    if (data.actualBalance !== undefined) store.actualBalance = parseFloat(data.actualBalance) || 0;
-
-    store.saveToStorage();
-    store.notify();
-    return data;
-  }
-
-  // Real-time EventSource Listener for Instant Cross-Device Sync
-  startRealtimeListener() {
-    this.stopRealtimeListener();
-    const baseUrl = this.getCleanUrl();
-    if (!baseUrl) return;
+    const fields = doc.fields;
+    this.isSyncing = true;
 
     try {
-      const streamUrl = `${baseUrl}kila_store.json`;
-      this.eventSource = new EventSource(streamUrl);
+      if (fields.transactionsJson?.stringValue) {
+        store.transactions = JSON.parse(fields.transactionsJson.stringValue);
+      }
+      if (fields.inventoryJson?.stringValue) {
+        store.inventory = JSON.parse(fields.inventoryJson.stringValue);
+      }
+      if (fields.codOrdersJson?.stringValue) {
+        store.codOrders = JSON.parse(fields.codOrdersJson.stringValue);
+      }
+      if (fields.initialBalance) {
+        store.initialBalance = fields.initialBalance.doubleValue || fields.initialBalance.integerValue || 0;
+      }
+      if (fields.actualBalance) {
+        store.actualBalance = fields.actualBalance.doubleValue || fields.actualBalance.integerValue || 0;
+      }
 
-      this.eventSource.onmessage = (event) => {
-        if (!event.data) return;
-        try {
-          const parsed = JSON.parse(event.data);
-          const data = parsed.data || parsed;
-          if (data && (data.transactions || data.inventory || data.codOrders)) {
-            // Apply update silently without looping
-            this.isSyncing = true;
-            if (Array.isArray(data.transactions)) store.transactions = data.transactions;
-            if (Array.isArray(data.inventory)) store.inventory = data.inventory;
-            if (Array.isArray(data.codOrders)) store.codOrders = data.codOrders;
-            if (data.initialBalance !== undefined) store.initialBalance = parseFloat(data.initialBalance) || 0;
-            if (data.actualBalance !== undefined) store.actualBalance = parseFloat(data.actualBalance) || 0;
-
-            store.saveToStorage();
-            store.notify();
-            this.isSyncing = false;
-            this.updateHeaderStatus(true);
-          }
-        } catch (e) {
-          console.warn('Firebase SSE parse error:', e);
-        }
-      };
-
-      this.eventSource.onerror = () => {
-        this.updateHeaderStatus(false);
-      };
-
-      this.updateHeaderStatus(true);
-    } catch (err) {
-      console.warn('Firebase EventSource error:', err);
-      this.updateHeaderStatus(false);
+      store.saveToStorage();
+      store.notify();
+    } finally {
+      this.isSyncing = false;
     }
+
+    this.updateHeaderStatus(true);
+    return fields;
   }
 
-  stopRealtimeListener() {
-    if (this.eventSource) {
-      this.eventSource.close();
-      this.eventSource = null;
-    }
-    this.updateHeaderStatus(false);
-  }
-
-  // Trigger auto-upload if autoSync is enabled and not responding to incoming sync
+  // Trigger auto upload to Firestore on data changes
   async triggerAutoSync() {
     if (this.isSyncing) return;
-    if (!this.databaseUrl || !this.autoSyncEnabled) return;
+    if (!this.autoSyncEnabled) return;
 
     try {
       await this.uploadLocalToCloud();
-      this.updateHeaderStatus(true);
     } catch (e) {
-      console.warn('Auto Firebase Sync failed:', e);
+      console.warn('Firestore auto-sync skipped/pending:', e.message);
       this.updateHeaderStatus(false);
     }
   }
@@ -190,20 +131,16 @@ class FirebaseSyncManager {
     const btn = document.getElementById('btnFirebaseStatus');
     if (!lbl || !btn) return;
 
-    if (this.databaseUrl && this.autoSyncEnabled && isConnected) {
-      lbl.innerHTML = '🟢 Cloud Synced';
+    if (isConnected) {
+      lbl.innerHTML = '🟢 Firestore Synced';
       btn.style.borderColor = '#34d399';
       btn.style.color = '#34d399';
-    } else if (this.databaseUrl) {
+    } else {
       lbl.innerHTML = '🟡 Cloud Standby';
       btn.style.borderColor = '#fbbf24';
       btn.style.color = '#fbbf24';
-    } else {
-      lbl.innerHTML = '☁️ Cloud Sync';
-      btn.style.borderColor = '#38bdf8';
-      btn.style.color = '#38bdf8';
     }
   }
 }
 
-export const firebaseSync = new FirebaseSyncManager();
+export const firebaseSync = new FirebaseFirestoreManager();

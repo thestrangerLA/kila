@@ -1239,26 +1239,26 @@
     <div id="firebaseModal" class="modal-overlay hidden">
       <div class="modal-card glass-card modal-md">
         <div class="modal-header">
-          <h3><i class="fa-solid fa-cloud-arrow-up" style="color:#38bdf8;"></i> ตั้งค่า Firebase Cloud Sync (ซิงค์ข้อมูลข้ามเครื่อง)</h3>
+          <h3><i class="fa-solid fa-cloud-arrow-up" style="color:#38bdf8;"></i> ตั้งค่า Cloud Firestore Sync (Kaset Stock Manager)</h3>
           <button id="btnCloseFirebaseModal" class="btn-close">&times;</button>
         </div>
         <div style="padding:10px 0;">
           <p style="font-size:13px; color:var(--text-secondary); margin-bottom:12px;">
-            เชื่อมต่อ **Firebase Realtime Database** เพื่ออัปโหลดและซิงค์ข้อมูล (สต็อกชุดบอล, บัญชีการเงิน, COD) ข้ามอุปกรณ์ ให้เปิดดูและอัปเดตบนคอมพิวเตอร์หรือโทรศัพท์เครื่องอื่นได้ทันที!
+            เชื่อมต่อ <strong>Cloud Firestore</strong> (โครงการ <code>kaset-stock-manager</code>) เพื่ออัปโหลดและซิงค์ข้อมูล (สต็อกชุดบอล, บัญชีการเงิน, COD) ข้ามอุปกรณ์ ให้เปิดดูบนคอมพิวเตอร์หรือโทรศัพท์เครื่องอื่นได้ทันที!
           </p>
 
           <div class="form-group" style="margin-bottom:14px;">
-            <label style="font-weight:600; color:var(--text-primary);">Firebase Database URL (Kaset Stock Manager)</label>
-            <input type="text" id="firebaseDatabaseUrl" class="form-control" placeholder="https://kaset-stock-manager-default-rtdb.firebaseio.com/" style="font-size:12px;">
+            <label style="font-weight:600; color:var(--text-primary);">Firebase Project ID (Cloud Firestore)</label>
+            <input type="text" id="firebaseDatabaseUrl" class="form-control" value="kaset-stock-manager" placeholder="kaset-stock-manager" style="font-size:12px;">
             <small style="color:var(--text-dim); margin-top:4px; display:block;">
-              <i class="fa-solid fa-circle-info"></i> เชื่อมต่อโครงการ <strong>kaset-stock-manager</strong> อัตโนมัติเรียบร้อยแล้ว
+              <i class="fa-solid fa-fire" style="color:#f97316;"></i> เชื่อมต่อ <strong>Cloud Firestore</strong> Collection: <code>sports_stockItems</code> อัตโนมัติ
             </small>
           </div>
 
           <div class="form-group" style="margin-bottom:16px; display:flex; align-items:center; gap:8px;">
-            <input type="checkbox" id="chkFirebaseAutoSync" style="width:18px; height:18px; cursor:pointer;">
+            <input type="checkbox" id="chkFirebaseAutoSync" checked style="width:18px; height:18px; cursor:pointer;">
             <label for="chkFirebaseAutoSync" style="font-size:13px; font-weight:600; cursor:pointer; color:var(--text-primary); margin:0;">
-              ⚡ เปิดใช้งาน Real-time Auto Sync (เมื่อแก้ไขข้อมูล จะอัปโหลดขึ้น Cloud ทันที)
+              ⚡ เปิดใช้งาน Real-time Auto Sync (เมื่อแก้ไขข้อมูล จะอัปโหลดขึ้น Cloud Firestore ทันที)
             </label>
           </div>
 

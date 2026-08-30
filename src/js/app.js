@@ -130,7 +130,7 @@ class App {
     document.getElementById('btnFirebaseStatus')?.addEventListener('click', () => {
       const urlInput = document.getElementById('firebaseDatabaseUrl');
       const chkAuto = document.getElementById('chkFirebaseAutoSync');
-      if (urlInput) urlInput.value = firebaseSync.databaseUrl || '';
+      if (urlInput) urlInput.value = firebaseSync.projectId || 'kaset-stock-manager';
       if (chkAuto) chkAuto.checked = firebaseSync.autoSyncEnabled;
       if (statusLogEl) statusLogEl.style.display = 'none';
       this.openModal('firebaseModal');
@@ -138,34 +138,29 @@ class App {
 
     document.getElementById('btnCloseFirebaseModal')?.addEventListener('click', () => this.closeModal('firebaseModal'));
     document.getElementById('btnSaveFirebaseSettings')?.addEventListener('click', () => {
-      const url = document.getElementById('firebaseDatabaseUrl')?.value || '';
+      const pId = document.getElementById('firebaseDatabaseUrl')?.value || 'kaset-stock-manager';
       const auto = document.getElementById('chkFirebaseAutoSync')?.checked;
-      firebaseSync.setDatabaseUrl(url);
+      firebaseSync.setProjectId(pId);
       firebaseSync.setAutoSync(auto);
       this.closeModal('firebaseModal');
-      this.showToast('บันทึกการตั้งค่า Firebase Cloud Sync เรียบร้อย');
+      this.showToast('บันทึกการตั้งค่า Cloud Firestore Sync เรียบร้อย');
     });
 
     document.getElementById('btnUploadToFirebase')?.addEventListener('click', async () => {
-      const url = document.getElementById('firebaseDatabaseUrl')?.value || '';
+      const pId = document.getElementById('firebaseDatabaseUrl')?.value || 'kaset-stock-manager';
       const auto = document.getElementById('chkFirebaseAutoSync')?.checked;
-      firebaseSync.setDatabaseUrl(url);
+      firebaseSync.setProjectId(pId);
       firebaseSync.setAutoSync(auto);
-
-      if (!url) {
-        alert('กรุณากรอก Firebase Database URL ก่อนทำการอัปโหลด (เช่น https://your-project-id-default-rtdb.firebaseio.com/)');
-        return;
-      }
 
       if (statusLogEl) {
         statusLogEl.style.display = 'block';
-        statusLogEl.textContent = '⏳ กำลังอัปโหลดข้อมูลทั้งหมดขึ้น Firebase Cloud...';
+        statusLogEl.textContent = '⏳ กำลังอัปโหลดข้อมูลขึ้น Cloud Firestore (kaset-stock-manager)...';
       }
 
       try {
         await firebaseSync.uploadLocalToCloud();
-        if (statusLogEl) statusLogEl.textContent = '✅ อัปโหลดขึ้น Firebase Cloud สำเร็จเรียบร้อย!';
-        this.showToast('⬆️ อัปโหลดข้อมูลขึ้น Firebase Cloud เรียบร้อยแล้ว!');
+        if (statusLogEl) statusLogEl.textContent = '✅ อัปโหลดขึ้น Cloud Firestore (sports_stockItems) สำเร็จเรียบร้อย!';
+        this.showToast('⬆️ อัปโหลดข้อมูลขึ้น Cloud Firestore เรียบร้อยแล้ว!');
       } catch (err) {
         if (statusLogEl) statusLogEl.textContent = `❌ ${err.message}`;
         alert(`อัปโหลดล้มเหลว: ${err.message}`);
@@ -173,25 +168,20 @@ class App {
     });
 
     document.getElementById('btnDownloadFromFirebase')?.addEventListener('click', async () => {
-      const url = document.getElementById('firebaseDatabaseUrl')?.value || '';
+      const pId = document.getElementById('firebaseDatabaseUrl')?.value || 'kaset-stock-manager';
       const auto = document.getElementById('chkFirebaseAutoSync')?.checked;
-      firebaseSync.setDatabaseUrl(url);
+      firebaseSync.setProjectId(pId);
       firebaseSync.setAutoSync(auto);
-
-      if (!url) {
-        alert('กรุณากรอก Firebase Database URL ก่อนดึงข้อมูล');
-        return;
-      }
 
       if (statusLogEl) {
         statusLogEl.style.display = 'block';
-        statusLogEl.textContent = '⏳ กำลังดึงข้อมูลจาก Firebase Cloud ลงเครื่องนี้...';
+        statusLogEl.textContent = '⏳ กำลังดึงข้อมูลจาก Cloud Firestore ลงเครื่องนี้...';
       }
 
       try {
         await firebaseSync.downloadCloudToLocal();
-        if (statusLogEl) statusLogEl.textContent = '✅ ดึงข้อมูลจาก Firebase Cloud สำเร็จเรียบร้อย!';
-        this.showToast('⬇️ ดึงข้อมูลจาก Firebase Cloud สำเร็จเรียบร้อย!');
+        if (statusLogEl) statusLogEl.textContent = '✅ ดึงข้อมูลจาก Cloud Firestore (sports_stockItems) สำเร็จเรียบร้อย!';
+        this.showToast('⬇️ ดึงข้อมูลจาก Cloud Firestore สำเร็จเรียบร้อย!');
       } catch (err) {
         if (statusLogEl) statusLogEl.textContent = `❌ ${err.message}`;
         alert(`ดึงข้อมูลล้มเหลว: ${err.message}`);
