@@ -5,7 +5,7 @@ const STORAGE_KEY_FIREBASE_PROJECT = 'kila_firestore_project_id';
 const STORAGE_KEY_FIREBASE_AUTOSYNC = 'kila_firestore_autosync';
 const DEFAULT_PROJECT_ID = 'kaset-stock-manager';
 const COLLECTION_NAME = 'sports_stockItems';
-const DOCUMENT_ID = 'kila_main_store';
+const DOCUMENT_ID = 'nwfaYyc9qQLGxMBfvFlX';
 
 class FirebaseFirestoreManager {
   constructor() {
