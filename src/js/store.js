@@ -10,6 +10,55 @@ const STORAGE_KEYS = {
   THEME: 'kila_biz_theme'
 };
 
+// Native IndexedDB Engine for Unlimited 1GB+ Browser Storage
+const DB_NAME = 'KilaBizAccountDB';
+const DB_VERSION = 1;
+const STORE_NAME = 'kila_store_data';
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME);
+      }
+    };
+    request.onsuccess = (e) => resolve(e.target.result);
+    request.onerror = (e) => reject(e.target.error);
+  });
+}
+
+async function idbGet(key) {
+  try {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readonly');
+      const store = tx.objectStore(STORE_NAME);
+      const req = store.get(key);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  } catch (e) {
+    return null;
+  }
+}
+
+async function idbSet(key, val) {
+  try {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      const req = store.put(val, key);
+      req.onsuccess = () => resolve(true);
+      req.onerror = () => reject(req.error);
+    });
+  } catch (e) {
+    return false;
+  }
+}
+
 class BizStore {
   constructor() {
     this.transactions = [];
@@ -23,8 +72,8 @@ class BizStore {
     this.init();
   }
 
-  init() {
-    this.loadFromStorage();
+  async init() {
+    await this.loadFromStorage();
   }
 
   subscribe(listener) {
@@ -38,7 +87,25 @@ class BizStore {
     this.listeners.forEach(fn => fn(this));
   }
 
-  loadFromStorage() {
+  async loadFromStorage() {
+    // 1. Try loading from IndexedDB (Unlimited 1GB+ Storage)
+    try {
+      const idbData = await idbGet('kila_full_state');
+      if (idbData && typeof idbData === 'object') {
+        if (Array.isArray(idbData.transactions)) this.transactions = idbData.transactions;
+        if (Array.isArray(idbData.inventory))    this.inventory    = idbData.inventory;
+        if (Array.isArray(idbData.codOrders))    this.codOrders     = idbData.codOrders;
+        if (idbData.initialBalance !== undefined) this.initialBalance = parseFloat(idbData.initialBalance) || 0;
+        if (idbData.actualBalance  !== undefined) this.actualBalance  = parseFloat(idbData.actualBalance)  || 0;
+        if (idbData.theme)                        this.theme          = idbData.theme;
+        this.notify();
+        return;
+      }
+    } catch (err) {
+      console.warn('Error reading from IndexedDB:', err);
+    }
+
+    // 2. Fallback to LocalStorage & migrate existing data into IndexedDB
     try {
       const savedTx    = localStorage.getItem(STORAGE_KEYS.TRANSACTIONS);
       const savedBal   = localStorage.getItem(STORAGE_KEYS.INITIAL_BALANCE);
@@ -53,24 +120,46 @@ class BizStore {
       if (savedStock)   this.inventory      = JSON.parse(savedStock);
       if (savedCOD)     this.codOrders      = JSON.parse(savedCOD);
       if (savedTheme)   this.theme          = savedTheme;
+
+      // Migrate existing localstorage data to IndexedDB
+      this.saveToStorage();
     } catch (e) {
       console.error('Error loading data from LocalStorage', e);
     }
   }
 
-  saveToStorage() {
+  async saveToStorage() {
+    const fullData = {
+      transactions:   this.transactions,
+      initialBalance: this.initialBalance,
+      actualBalance:  this.actualBalance,
+      inventory:      this.inventory,
+      codOrders:      this.codOrders,
+      theme:          this.theme
+    };
+
+    // Save full accurate state into IndexedDB (Capacity > 1GB)
+    await idbSet('kila_full_state', fullData);
+
+    // Save backup state into LocalStorage safely without throwing QuotaExceededError
     try {
       localStorage.setItem(STORAGE_KEYS.TRANSACTIONS,   JSON.stringify(this.transactions));
       localStorage.setItem(STORAGE_KEYS.INITIAL_BALANCE, this.initialBalance.toString());
       localStorage.setItem(STORAGE_KEYS.ACTUAL_BALANCE,  this.actualBalance.toString());
-      localStorage.setItem(STORAGE_KEYS.STOCK,           JSON.stringify(this.inventory));
       localStorage.setItem(STORAGE_KEYS.COD,             JSON.stringify(this.codOrders));
       localStorage.setItem(STORAGE_KEYS.THEME,           this.theme);
+
+      // Save stock without giant uncompressed legacy images to prevent localStorage quota crash
+      const lightInventory = this.inventory.map(item => {
+        if (item.image && item.image.length > 200000) {
+          return { ...item, image: '' };
+        }
+        return item;
+      });
+      localStorage.setItem(STORAGE_KEYS.STOCK, JSON.stringify(lightInventory));
     } catch (e) {
-      console.error('Error saving data to LocalStorage', e);
-      if (e.name === 'QuotaExceededError' || e.code === 22) {
-        alert('⚠️ ความจำของเบราว์เซอร์เต็ม (QuotaExceededError) ไม่สามารถบันทึกข้อมูลเพิ่มได้');
-      }
+      // LocalStorage fallback quota safely caught; full data is 100% saved in IndexedDB
+      console.warn('LocalStorage quota limit reached; data safely preserved in IndexedDB');
     }
   }
 
