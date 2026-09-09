@@ -161,6 +161,11 @@ class BizStore {
       // LocalStorage fallback quota safely caught; full data is 100% saved in IndexedDB
       console.warn('LocalStorage quota limit reached; data safely preserved in IndexedDB');
     }
+
+    // Trigger background auto sync to Cloud Firestore
+    if (firebaseSync && typeof firebaseSync.triggerAutoSync === 'function') {
+      firebaseSync.triggerAutoSync();
+    }
   }
 
   setActualBalance(amount) {
