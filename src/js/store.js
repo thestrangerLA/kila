@@ -5,6 +5,7 @@ const STORAGE_KEYS = {
   TRANSACTIONS: 'kila_biz_transactions_kip',
   INITIAL_BALANCE: 'kila_biz_initial_balance_kip',
   ACTUAL_BALANCE: 'kila_biz_actual_balance_kip',
+  MANUAL_CASH: 'kila_biz_manual_cash_kip',
   STOCK: 'kila_biz_football_stock_kip',
   COD: 'kila_biz_cod_orders_kip',
   THEME: 'kila_biz_theme'
@@ -64,6 +65,7 @@ class BizStore {
     this.transactions = [];
     this.initialBalance = 0;
     this.actualBalance = 0;   // เงินในบัญชีจริง (กรอกแมนวล)
+    this.manualCashBalance = null; // เงินสดคงเหลือสะสมจริง (กรอกแมนวลได้)
     this.inventory = [];
     this.codOrders = [];      // ติดตาม COD ขนส่ง (ANS, HAL, MX)
     this.theme = 'dark';
@@ -97,6 +99,9 @@ class BizStore {
         if (Array.isArray(idbData.codOrders))    this.codOrders     = idbData.codOrders;
         if (idbData.initialBalance !== undefined) this.initialBalance = parseFloat(idbData.initialBalance) || 0;
         if (idbData.actualBalance  !== undefined) this.actualBalance  = parseFloat(idbData.actualBalance)  || 0;
+        if (idbData.manualCashBalance !== undefined && idbData.manualCashBalance !== null) {
+          this.manualCashBalance = parseFloat(idbData.manualCashBalance);
+        }
         if (idbData.theme)                        this.theme          = idbData.theme;
         this.notify();
         return;
@@ -110,6 +115,7 @@ class BizStore {
       const savedTx    = localStorage.getItem(STORAGE_KEYS.TRANSACTIONS);
       const savedBal   = localStorage.getItem(STORAGE_KEYS.INITIAL_BALANCE);
       const savedActual = localStorage.getItem(STORAGE_KEYS.ACTUAL_BALANCE);
+      const savedManual = localStorage.getItem(STORAGE_KEYS.MANUAL_CASH);
       const savedStock = localStorage.getItem(STORAGE_KEYS.STOCK);
       const savedCOD   = localStorage.getItem(STORAGE_KEYS.COD);
       const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME);
@@ -117,6 +123,7 @@ class BizStore {
       if (savedTx)      this.transactions   = JSON.parse(savedTx);
       if (savedBal  !== null) this.initialBalance = parseFloat(savedBal)  || 0;
       if (savedActual !== null) this.actualBalance = parseFloat(savedActual) || 0;
+      if (savedManual !== null) this.manualCashBalance = parseFloat(savedManual);
       if (savedStock)   this.inventory      = JSON.parse(savedStock);
       if (savedCOD)     this.codOrders      = JSON.parse(savedCOD);
       if (savedTheme)   this.theme          = savedTheme;
@@ -130,12 +137,13 @@ class BizStore {
 
   async saveToStorage() {
     const fullData = {
-      transactions:   this.transactions,
-      initialBalance: this.initialBalance,
-      actualBalance:  this.actualBalance,
-      inventory:      this.inventory,
-      codOrders:      this.codOrders,
-      theme:          this.theme
+      transactions:      this.transactions,
+      initialBalance:    this.initialBalance,
+      actualBalance:     this.actualBalance,
+      manualCashBalance: this.manualCashBalance,
+      inventory:         this.inventory,
+      codOrders:         this.codOrders,
+      theme:             this.theme
     };
 
     // Save full accurate state into IndexedDB (Capacity > 1GB)
@@ -146,6 +154,11 @@ class BizStore {
       localStorage.setItem(STORAGE_KEYS.TRANSACTIONS,   JSON.stringify(this.transactions));
       localStorage.setItem(STORAGE_KEYS.INITIAL_BALANCE, this.initialBalance.toString());
       localStorage.setItem(STORAGE_KEYS.ACTUAL_BALANCE,  this.actualBalance.toString());
+      if (this.manualCashBalance !== null) {
+        localStorage.setItem(STORAGE_KEYS.MANUAL_CASH,   this.manualCashBalance.toString());
+      } else {
+        localStorage.removeItem(STORAGE_KEYS.MANUAL_CASH);
+      }
       localStorage.setItem(STORAGE_KEYS.COD,             JSON.stringify(this.codOrders));
       localStorage.setItem(STORAGE_KEYS.THEME,           this.theme);
 
@@ -174,6 +187,16 @@ class BizStore {
     this.notify();
   }
 
+  setManualCashBalance(amount) {
+    if (amount === null || amount === undefined || amount === '') {
+      this.manualCashBalance = null;
+    } else {
+      this.manualCashBalance = Math.max(0, parseFloat(amount) || 0);
+    }
+    this.saveToStorage();
+    this.notify();
+  }
+
   // Clear ALL transactions and inventory (keep theme & balances)
   clearAllData() {
     this.transactions   = [];
@@ -181,6 +204,7 @@ class BizStore {
     this.codOrders       = [];
     this.initialBalance = 0;
     this.actualBalance  = 0;
+    this.manualCashBalance = null;
     
     // Wipe local storage items
     localStorage.removeItem(STORAGE_KEYS.TRANSACTIONS);
@@ -188,6 +212,7 @@ class BizStore {
     localStorage.removeItem(STORAGE_KEYS.COD);
     localStorage.removeItem(STORAGE_KEYS.INITIAL_BALANCE);
     localStorage.removeItem(STORAGE_KEYS.ACTUAL_BALANCE);
+    localStorage.removeItem(STORAGE_KEYS.MANUAL_CASH);
 
     this.saveToStorage();
     this.notify();
@@ -475,8 +500,9 @@ class BizStore {
     const totalOutflow = totalExpense + totalCost;
     const netProfit = totalIncome - totalOutflow;
 
-    // เงินสดคงเหลือสะสมจริงในมือ/ธนาคาร = เงินสดตั้งต้น + รายรับรวมทั้งหมด - รายจ่าย - ต้นทุนที่จ่ายออกจริง
-    const cashBalance = this.initialBalance + totalIncome - totalExpense - directCostPaid;
+    // เงินสดคงเหลือสะสมในมือ (ถ้ากรอกแมนวล จะใช้ยอดแมนวล ถ้าไม่กรอก จะคำนวณอัตโนมัติ)
+    const calculatedCash = this.initialBalance + totalIncome - totalExpense - directCostPaid;
+    const cashBalance = this.manualCashBalance !== null ? this.manualCashBalance : calculatedCash;
     const profitMargin = totalIncome > 0 ? (netProfit / totalIncome) * 100 : 0;
 
     let totalStockQty = 0;

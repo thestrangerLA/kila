@@ -138,7 +138,9 @@
             </div>
             <div class="card-body">
               <h2 id="metricCashBalance">₭0</h2>
-              <span class="card-subtitle">เงินสดตั้งต้น + รายรับ - รายจ่ายรวม</span>
+              <button id="btnEditCashBalance" class="card-subtitle" style="background:none;border:none;cursor:pointer;color:var(--accent-primary);font-size:11px;padding:0;display:flex;align-items:center;gap:4px;">
+                <i class="fa-solid fa-pen"></i> คลิกเพื่อบันทึกยอดเงินสดจริง
+              </button>
             </div>
           </div>
 
@@ -1230,6 +1232,31 @@
           </button>
           <button id="btnCloseTxBillModal2" class="btn btn-secondary">ปิด</button>
         </div>
+      </div>
+    </div>
+
+    <!-- Modal: เงินสดคงเหลือจริง (Cash In Hand Balance) -->
+    <div id="cashBalModal" class="modal-overlay hidden">
+      <div class="modal-card glass-card modal-sm">
+        <div class="modal-header">
+          <h3><i class="fa-solid fa-sack-dollar" style="color:var(--income-color);"></i> บันทึกเงินสดคงเหลือจริง (KIP ₭)</h3>
+          <button id="btnCloseCashBalModal" class="btn-close">&times;</button>
+        </div>
+        <form id="cashBalForm">
+          <div class="form-group" style="margin-top:12px;">
+            <label style="font-size:13px;color:var(--text-secondary);">ยอดเงินสดคงเหลือจริงในมือ / ในลิ้นชัก ณ วันนี้</label>
+            <input type="number" id="cashBalAmount" class="form-control" placeholder="เช่น 1500000" min="0" step="any" required
+              style="font-size:20px;font-weight:700;text-align:right;color:var(--income-color);">
+            <small style="color:var(--text-dim);margin-top:6px;display:block;">
+              <i class="fa-solid fa-circle-info"></i> ปรับแก้ไขจำนวนเงินสดได้ตามต้องการ (หรือเว้นว่างเพื่อใช้ยอดคำนวณอัตโนมัติ)
+            </small>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">บันทึกยอดเงินสด</button>
+            <button type="button" id="btnResetAutoCash" class="btn btn-outline" style="border-color:var(--border-color);">ใช้ยอดคำนวณ</button>
+            <button type="button" id="btnCancelCashBalModal" class="btn btn-secondary">ยกเลิก</button>
+          </div>
+        </form>
       </div>
     </div>
 

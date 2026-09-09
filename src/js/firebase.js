@@ -42,6 +42,7 @@ class FirebaseFirestoreManager {
         codOrdersJson:    { stringValue: JSON.stringify(store.codOrders || []) },
         initialBalance:   { doubleValue: store.initialBalance || 0 },
         actualBalance:    { doubleValue: store.actualBalance || 0 },
+        manualCashBalance: store.manualCashBalance !== null ? { doubleValue: store.manualCashBalance } : { nullValue: null },
         lastUpdated:      { stringValue: new Date().toISOString() }
       }
     };
@@ -58,35 +59,32 @@ class FirebaseFirestoreManager {
     }
 
     this.updateHeaderStatus(true);
-    return await response.json();
+    return true;
   }
 
   // Download store state from Cloud Firestore to local device
-  async downloadCloudToLocal() {
-    const endpoint = this.getFirestoreEndpoint();
-
-    const response = await fetch(endpoint, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' }
-    });
-
-    if (!response.ok) {
-      if (response.status === 404) {
-        throw new Error('ยังไม่พบข้อมูลใน Cloud Firestore (กรุณากดอัปโหลดขึ้น Cloud ครั้งแรกก่อน)');
-      }
-      const errText = await response.text();
-      throw new Error(`ดึงข้อมูลจาก Cloud Firestore ล้มเหลว (${response.status}): ${errText}`);
-    }
-
-    const doc = await response.json();
-    if (!doc || !doc.fields) {
-      throw new Error('รูปแบบข้อมูลใน Cloud Firestore ไม่ถูกต้อง');
-    }
-
-    const fields = doc.fields;
+  async downloadFromCloud() {
+    if (this.isSyncing) return;
     this.isSyncing = true;
-
+    let fields = null;
     try {
+      const endpoint = this.getFirestoreEndpoint();
+      const response = await fetch(endpoint);
+
+      if (response.status === 404) {
+        // Document does not exist yet
+        this.updateHeaderStatus(false);
+        return null;
+      }
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`ดึงข้อมูลจาก Cloud Firestore ล้มเหลว (${response.status}): ${errText}`);
+      }
+
+      const data = await response.json();
+      fields = data.fields || {};
+
       if (fields.transactionsJson?.stringValue) {
         store.transactions = JSON.parse(fields.transactionsJson.stringValue);
       }
@@ -101,6 +99,13 @@ class FirebaseFirestoreManager {
       }
       if (fields.actualBalance) {
         store.actualBalance = fields.actualBalance.doubleValue || fields.actualBalance.integerValue || 0;
+      }
+      if (fields.manualCashBalance !== undefined) {
+        if (fields.manualCashBalance.nullValue !== undefined) {
+          store.manualCashBalance = null;
+        } else {
+          store.manualCashBalance = fields.manualCashBalance.doubleValue ?? fields.manualCashBalance.integerValue ?? null;
+        }
       }
 
       store.saveToStorage();

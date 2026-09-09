@@ -124,6 +124,29 @@ class App {
       this.showToast('บันทึกเงินในบัญชีจริงเรียบร้อย!');
     });
 
+    // 4a. Cash Balance (เงินสดคงเหลือสะสมจริง) Modal
+    const openCashBal = () => {
+      const summary = store.getSummary();
+      document.getElementById('cashBalAmount').value = store.manualCashBalance !== null ? store.manualCashBalance : summary.cashBalance;
+      this.openModal('cashBalModal');
+    };
+    document.getElementById('btnEditCashBalance')?.addEventListener('click', openCashBal);
+    document.getElementById('btnCloseCashBalModal')?.addEventListener('click', () => this.closeModal('cashBalModal'));
+    document.getElementById('btnCancelCashBalModal')?.addEventListener('click', () => this.closeModal('cashBalModal'));
+    document.getElementById('cashBalForm')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const rawVal = document.getElementById('cashBalAmount').value.trim();
+      const val = rawVal !== '' ? parseFloat(rawVal) : null;
+      store.setManualCashBalance(val);
+      this.closeModal('cashBalModal');
+      this.showToast('บันทึกยอดเงินสดคงเหลือเรียบร้อย!');
+    });
+    document.getElementById('btnResetAutoCash')?.addEventListener('click', () => {
+      store.setManualCashBalance(null);
+      this.closeModal('cashBalModal');
+      this.showToast('เปลี่ยนเป็นยอดคำนวณเงินสดอัตโนมัติเรียบร้อย!');
+    });
+
 
 
     // 4b. Clear All Data
@@ -704,6 +727,14 @@ class App {
 
     // Dashboard Metrics (filtered)
     document.getElementById('metricCashBalance').textContent = `₭${summary.cashBalance.toLocaleString()}`;
+    const btnEditCash = document.getElementById('btnEditCashBalance');
+    if (btnEditCash) {
+      if (store.manualCashBalance !== null) {
+        btnEditCash.innerHTML = `<i class="fa-solid fa-pen"></i> ยอดระบุเอง (คลิกแก้ไข)`;
+      } else {
+        btnEditCash.innerHTML = `<i class="fa-solid fa-pen"></i> คลิกเพื่อบันทึกยอดเงินสดจริง`;
+      }
+    }
     document.getElementById('metricTotalIncome').textContent = `₭${summary.totalIncome.toLocaleString()}`;
     document.getElementById('metricTotalCost').textContent = `₭${summary.totalCost.toLocaleString()}`;
     document.getElementById('metricTotalExpense').textContent = `₭${summary.totalExpense.toLocaleString()}`;
