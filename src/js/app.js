@@ -716,13 +716,22 @@ class App {
     const marginEl = document.getElementById('metricProfitMargin');
     if (marginEl) marginEl.textContent = `อัตรากำไร: ${summary.profitMargin.toFixed(1)}%`;
 
-    // เงินในบัญชีจริง (always from full data, not date-filtered)
+    // เงินในบัญชีจริง & ยอดเงินรวมสุทธิ (เงินสด + บัญชีจริง)
     const actualBal = fullSummary.actualBalance;
     const cashBal   = fullSummary.cashBalance;
+    const grandTotalBalance = cashBal + actualBal;
     const diff      = cashBal - actualBal;
 
     const actualEl = document.getElementById('metricActualBalance');
     if (actualEl) actualEl.textContent = `₭${actualBal.toLocaleString()}`;
+
+    const grandTotalEl = document.getElementById('metricGrandTotalBalance');
+    if (grandTotalEl) grandTotalEl.textContent = `₭${grandTotalBalance.toLocaleString()}`;
+
+    const breakdownEl = document.getElementById('metricGrandTotalBreakdown');
+    if (breakdownEl) {
+      breakdownEl.textContent = `เงินสด (₭${cashBal.toLocaleString()}) + บัญชีจริง (₭${actualBal.toLocaleString()})`;
+    }
 
     const diffEl = document.getElementById('metricBalanceDiff');
     const diffLbl = document.getElementById('metricBalanceDiffLabel');
