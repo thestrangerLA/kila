@@ -124,69 +124,7 @@ class App {
       this.showToast('บันทึกเงินในบัญชีจริงเรียบร้อย!');
     });
 
-    // 4b. Firebase Cloud Sync Settings Modal & Data Upload
-    const statusLogEl = document.getElementById('firebaseSyncStatusLog');
 
-    document.getElementById('btnFirebaseStatus')?.addEventListener('click', () => {
-      const urlInput = document.getElementById('firebaseDatabaseUrl');
-      const chkAuto = document.getElementById('chkFirebaseAutoSync');
-      if (urlInput) urlInput.value = firebaseSync.projectId || 'kaset-stock-manager';
-      if (chkAuto) chkAuto.checked = firebaseSync.autoSyncEnabled;
-      if (statusLogEl) statusLogEl.style.display = 'none';
-      this.openModal('firebaseModal');
-    });
-
-    document.getElementById('btnCloseFirebaseModal')?.addEventListener('click', () => this.closeModal('firebaseModal'));
-    document.getElementById('btnSaveFirebaseSettings')?.addEventListener('click', () => {
-      const pId = document.getElementById('firebaseDatabaseUrl')?.value || 'kaset-stock-manager';
-      const auto = document.getElementById('chkFirebaseAutoSync')?.checked;
-      firebaseSync.setProjectId(pId);
-      firebaseSync.setAutoSync(auto);
-      this.closeModal('firebaseModal');
-      this.showToast('บันทึกการตั้งค่า Cloud Firestore Sync เรียบร้อย');
-    });
-
-    document.getElementById('btnUploadToFirebase')?.addEventListener('click', async () => {
-      const pId = document.getElementById('firebaseDatabaseUrl')?.value || 'kaset-stock-manager';
-      const auto = document.getElementById('chkFirebaseAutoSync')?.checked;
-      firebaseSync.setProjectId(pId);
-      firebaseSync.setAutoSync(auto);
-
-      if (statusLogEl) {
-        statusLogEl.style.display = 'block';
-        statusLogEl.textContent = '⏳ กำลังอัปโหลดข้อมูลขึ้น Cloud Firestore (kaset-stock-manager)...';
-      }
-
-      try {
-        await firebaseSync.uploadLocalToCloud();
-        if (statusLogEl) statusLogEl.textContent = '✅ อัปโหลดขึ้น Cloud Firestore (sports_stockItems) สำเร็จเรียบร้อย!';
-        this.showToast('⬆️ อัปโหลดข้อมูลขึ้น Cloud Firestore เรียบร้อยแล้ว!');
-      } catch (err) {
-        if (statusLogEl) statusLogEl.textContent = `❌ ${err.message}`;
-        alert(`อัปโหลดล้มเหลว: ${err.message}`);
-      }
-    });
-
-    document.getElementById('btnDownloadFromFirebase')?.addEventListener('click', async () => {
-      const pId = document.getElementById('firebaseDatabaseUrl')?.value || 'kaset-stock-manager';
-      const auto = document.getElementById('chkFirebaseAutoSync')?.checked;
-      firebaseSync.setProjectId(pId);
-      firebaseSync.setAutoSync(auto);
-
-      if (statusLogEl) {
-        statusLogEl.style.display = 'block';
-        statusLogEl.textContent = '⏳ กำลังดึงข้อมูลจาก Cloud Firestore ลงเครื่องนี้...';
-      }
-
-      try {
-        await firebaseSync.downloadCloudToLocal();
-        if (statusLogEl) statusLogEl.textContent = '✅ ดึงข้อมูลจาก Cloud Firestore (sports_stockItems) สำเร็จเรียบร้อย!';
-        this.showToast('⬇️ ดึงข้อมูลจาก Cloud Firestore สำเร็จเรียบร้อย!');
-      } catch (err) {
-        if (statusLogEl) statusLogEl.textContent = `❌ ${err.message}`;
-        alert(`ดึงข้อมูลล้มเหลว: ${err.message}`);
-      }
-    });
 
     // 4b. Clear All Data
     document.getElementById('btnClearAllData')?.addEventListener('click', () => this.openModal('clearDataModal'));
@@ -199,7 +137,7 @@ class App {
     });
 
 
-    // 5. CSV & PC Backup / Restore Buttons
+    // 5. CSV Export Button
     document.getElementById('btnExportCSV')?.addEventListener('click', () => {
       const filtered = store.getFilteredTransactions({
         search: this.searchQuery,
@@ -207,41 +145,6 @@ class App {
         category: this.currentCategory
       });
       exportToCSV(filtered);
-    });
-
-    // Save Backup JSON to PC
-    document.getElementById('btnBackupPC')?.addEventListener('click', () => {
-      const backupData = store.exportAllDataJSON();
-      exportJSONBackup(backupData);
-      this.showToast('สำรองข้อมูลทั้งหมดลงเครื่อง PC เรียบร้อยแล้ว!');
-    });
-
-    // Restore Backup JSON from PC
-    const fileInput = document.getElementById('fileRestoreJSON');
-    document.getElementById('btnRestorePC')?.addEventListener('click', () => {
-      fileInput?.click();
-    });
-
-    fileInput?.addEventListener('change', (e) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        try {
-          const data = JSON.parse(event.target.result);
-          if (store.importAllDataJSON(data)) {
-            confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
-            this.showToast('นำเข้าข้อมูลสำรองจากไฟล์ PC สำเร็จเรียบร้อย!');
-          } else {
-            alert('รูปแบบไฟล์สำรองไม่ถูกต้อง');
-          }
-        } catch (err) {
-          alert('เกิดข้อผิดพลาดในการอ่านไฟล์สำรอง: ' + err.message);
-        }
-        fileInput.value = '';
-      };
-      reader.readAsText(file);
     });
 
     // 6. Transaction Modal & Form
