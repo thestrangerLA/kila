@@ -68,6 +68,9 @@ class BizStore {
       localStorage.setItem(STORAGE_KEYS.THEME,           this.theme);
     } catch (e) {
       console.error('Error saving data to LocalStorage', e);
+      if (e.name === 'QuotaExceededError' || e.code === 22) {
+        alert('⚠️ ความจำของเบราว์เซอร์เต็ม (QuotaExceededError) ไม่สามารถบันทึกข้อมูลเพิ่มได้');
+      }
     }
   }
 
