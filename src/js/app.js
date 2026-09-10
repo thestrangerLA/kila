@@ -834,7 +834,7 @@ class App {
     const emptyState = document.getElementById('txEmptyState');
     if (!tbody) return;
 
-    const filtered = store.getFilteredTransactions({
+    const filters = {
       search: this.searchQuery,
       type: this.currentFilterType,
       category: this.currentCategory,
@@ -842,7 +842,42 @@ class App {
       year: this.txYear,
       dateFrom: this.txDateFrom,
       dateTo: this.txDateTo
-    });
+    };
+
+    const filtered = store.getFilteredTransactions(filters);
+    const summary  = store.getFilteredSummary(filters);
+
+    // Update Quick Stats Row
+    const elIncome = document.getElementById('txTotalIncomeVal');
+    const elCost = document.getElementById('txTotalCostVal');
+    const elExpense = document.getElementById('txTotalExpenseVal');
+    const elNetProfit = document.getElementById('txTotalNetProfitVal');
+
+    if (elIncome) elIncome.textContent = `₭${summary.totalIncome.toLocaleString()}`;
+    if (elCost) elCost.textContent = `₭${summary.totalCost.toLocaleString()}`;
+    if (elExpense) elExpense.textContent = `₭${summary.totalExpense.toLocaleString()}`;
+    if (elNetProfit) {
+      elNetProfit.textContent = `₭${summary.netProfit.toLocaleString()}`;
+      elNetProfit.style.color = summary.netProfit >= 0 ? 'var(--income-color)' : 'var(--expense-color)';
+    }
+
+    // Update Table Footer Row
+    const elFooterAmt = document.getElementById('txFooterTotalAmount');
+    const elFooterNet = document.getElementById('txFooterNetProfit');
+    const elFooterCount = document.getElementById('txFooterCount');
+
+    if (elFooterAmt) {
+      const netCashFlow = summary.totalIncome - summary.totalOutflow;
+      elFooterAmt.textContent = `${netCashFlow >= 0 ? '+' : ''}₭${netCashFlow.toLocaleString()}`;
+      elFooterAmt.style.color = netCashFlow >= 0 ? 'var(--income-color)' : 'var(--expense-color)';
+    }
+    if (elFooterNet) {
+      elFooterNet.textContent = `₭${summary.netProfit.toLocaleString()}`;
+      elFooterNet.style.color = summary.netProfit >= 0 ? 'var(--income-color)' : 'var(--expense-color)';
+    }
+    if (elFooterCount) {
+      elFooterCount.textContent = `${filtered.length} รายการ`;
+    }
 
     if (filtered.length === 0) {
       tbody.innerHTML = '';
