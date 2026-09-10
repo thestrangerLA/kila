@@ -752,11 +752,12 @@ class App {
     const marginEl = document.getElementById('metricProfitMargin');
     if (marginEl) marginEl.textContent = `อัตรากำไร: ${summary.profitMargin.toFixed(1)}%`;
 
-    // เงินในบัญชีจริง & ยอดเงินรวมสุทธิ (เงินสด + บัญชีจริง)
-    const actualBal = fullSummary.actualBalance;
-    const cashBal   = fullSummary.cashBalance;
-    const grandTotalBalance = cashBal + actualBal;
-    const diff      = cashBal - actualBal;
+    // เงินในบัญชีจริง (เงินโอน) & ยอดเงินรวมสุทธิ (เงินสด + บัญชีจริง + รายรับรวม)
+    const actualBal   = fullSummary.actualBalance;
+    const cashBal     = fullSummary.cashBalance;
+    const incomeTotal = summary.totalIncome;
+    const grandTotalBalance = cashBal + actualBal + incomeTotal;
+    const diff        = cashBal - actualBal;
 
     const actualEl = document.getElementById('metricActualBalance');
     if (actualEl) actualEl.textContent = `₭${actualBal.toLocaleString()}`;
@@ -766,7 +767,7 @@ class App {
 
     const breakdownEl = document.getElementById('metricGrandTotalBreakdown');
     if (breakdownEl) {
-      breakdownEl.textContent = `เงินสด (₭${cashBal.toLocaleString()}) + บัญชีจริง (₭${actualBal.toLocaleString()})`;
+      breakdownEl.textContent = `เงินสด (₭${cashBal.toLocaleString()}) + บัญชีจริง (₭${actualBal.toLocaleString()}) + รายรับ (₭${incomeTotal.toLocaleString()})`;
     }
 
     const diffEl = document.getElementById('metricBalanceDiff');
