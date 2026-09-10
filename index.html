@@ -13,7 +13,7 @@
   <!-- FontAwesome Icons for UI -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
-  <script type="module" crossorigin src="./assets/index-C29VG82B.js"></script>
+  <script type="module" crossorigin src="./assets/index-CfcP7I-h.js"></script>
   <link rel="stylesheet" crossorigin href="./assets/index-DmYv_Nhq.css">
 </head>
 <body>
@@ -36,9 +36,9 @@
           <span>เงินสดเริ่มต้น: <strong id="lblInitialBalance">₭0</strong></span>
         </button>
 
-        <button id="btnActualBalance" class="btn btn-outline" title="บันทึกเงินในบัญชีจริง (เงินโอน)" style="border-color:var(--accent-primary);color:var(--accent-primary);">
+        <button id="btnActualBalance" class="btn btn-outline" title="บันทึกยอดเงินโอน (บัญชีจริง)" style="border-color:var(--accent-primary);color:var(--accent-primary);">
           <i class="fa-solid fa-building-columns"></i>
-          <span>เงินในบัญชีจริง (เงินโอน): <strong id="lblActualBalance">₭0</strong></span>
+          <span>ยอดเงินโอน (บัญชีจริง): <strong id="lblActualBalance">₭0</strong></span>
         </button>
 
         <button id="btnExportCSV" class="btn btn-icon" title="ส่งออกข้อมูลเป็น CSV">
@@ -145,10 +145,10 @@
             </div>
           </div>
 
-          <!-- Balance Card -->
+          <!-- Balance Card (เงินสด) -->
           <div class="metric-card glass-card card-cyan">
             <div class="card-header">
-              <span>เงินสดคงเหลือสะสม (เงินสด)</span>
+              <span>ยอดเงินสด (เงินสดคงเหลือสะสม)</span>
               <i class="fa-solid fa-sack-dollar icon"></i>
             </div>
             <div class="card-body">
@@ -207,10 +207,10 @@
             </div>
           </div>
 
-          <!-- Actual Bank Balance Card -->
+          <!-- Actual Bank Balance Card (เงินโอน) -->
           <div class="metric-card glass-card" style="border-color:rgba(99,102,241,0.4);background:linear-gradient(135deg,rgba(99,102,241,0.08),rgba(99,102,241,0.03));">
             <div class="card-header">
-              <span style="color:#818cf8;">เงินในบัญชีจริง (เงินโอน)</span>
+              <span style="color:#818cf8;">ยอดเงินโอน (เงินในบัญชีจริง)</span>
               <i class="fa-solid fa-building-columns icon" style="color:#818cf8;"></i>
             </div>
             <div class="card-body">
@@ -221,16 +221,16 @@
             </div>
           </div>
 
-          <!-- Grand Total Combined Capital Card (เงินสด + บัญชีจริง + รายรับรวม) -->
+          <!-- Grand Total Combined Capital Card (เงินโอน + เงินสด) -->
           <div class="metric-card glass-card" style="border-color:rgba(168,85,247,0.5);background:linear-gradient(135deg,rgba(168,85,247,0.14),rgba(168,85,247,0.03));grid-column: span 1;">
             <div class="card-header">
-              <span style="color:#c084fc;font-weight:700;">ยอดเงินรวมสุทธิ (เงินสด + บัญชีจริง + รายรับรวม)</span>
+              <span style="color:#c084fc;font-weight:700;">ยอดเงินรวมสุทธิ (เงินโอน + เงินสด)</span>
               <i class="fa-solid fa-coins icon" style="color:#c084fc;"></i>
             </div>
             <div class="card-body">
               <h2 id="metricGrandTotalBalance" style="color:#c084fc;">₭0</h2>
               <span class="card-subtitle" id="metricGrandTotalBreakdown" style="color:var(--text-secondary);font-size:11px;">
-                รวมเงินสด + บัญชีจริง (เงินโอน) + รายรับรวม
+                รวมเงินโอน + เงินสด
               </span>
             </div>
           </div>
