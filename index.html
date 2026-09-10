@@ -13,7 +13,7 @@
   <!-- FontAwesome Icons for UI -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
-  <script type="module" crossorigin src="./assets/index-CfcP7I-h.js"></script>
+  <script type="module" crossorigin src="./assets/index-BajFfc4v.js"></script>
   <link rel="stylesheet" crossorigin href="./assets/index-DmYv_Nhq.css">
 </head>
 <body>
@@ -368,6 +368,26 @@
       <!-- ================= 3. TRANSACTIONS VIEW ================= -->
       <section id="view-transactions" class="tab-view">
 
+        <!-- Transactions Quick Stats Row -->
+        <div class="stock-stats-row" style="margin-bottom:16px;">
+          <div class="stock-stat-box glass-card" style="border-left:4px solid var(--income-color);">
+            <div class="title">รายรับรวม (Total Income)</div>
+            <div class="value text-emerald" id="txTotalIncomeVal">₭0</div>
+          </div>
+          <div class="stock-stat-box glass-card" style="border-left:4px solid #f59e0b;">
+            <div class="title">ต้นทุนรวม (Total Cost)</div>
+            <div class="value text-amber" id="txTotalCostVal">₭0</div>
+          </div>
+          <div class="stock-stat-box glass-card" style="border-left:4px solid var(--expense-color);">
+            <div class="title">รายจ่ายรวม (Total Expenses)</div>
+            <div class="value text-rose" id="txTotalExpenseVal">₭0</div>
+          </div>
+          <div class="stock-stat-box glass-card" style="border-left:4px solid #818cf8;background:linear-gradient(135deg,rgba(99,102,241,0.12),rgba(99,102,241,0.03));">
+            <div class="title" style="font-weight:700;color:#818cf8;">รวมกำไรสุทธิ ₭ (Net Profit)</div>
+            <div class="value" id="txTotalNetProfitVal" style="color:var(--income-color);">₭0</div>
+          </div>
+        </div>
+
         <!-- Transactions Date Filter Bar -->
         <div class="date-filter-bar glass-card">
           <div class="date-filter-left">
@@ -459,6 +479,14 @@
               <tbody id="txTableBody">
                 <!-- Transaction rows inserted dynamically -->
               </tbody>
+              <tfoot>
+                <tr style="font-weight:700;background:rgba(255,255,255,0.04);border-top:2px solid var(--border-color);">
+                  <td colspan="5" class="text-right" style="color:var(--text-secondary);padding:12px;">รวมตามรายการที่เลือก (Summary Total):</td>
+                  <td class="text-right" id="txFooterTotalAmount" style="font-size:14px;padding:12px;">₭0</td>
+                  <td class="text-right" id="txFooterNetProfit" style="font-size:14px;color:var(--income-color);padding:12px;">₭0</td>
+                  <td class="text-center" id="txFooterCount" style="font-size:11px;color:var(--text-dim);padding:12px;">0 รายการ</td>
+                </tr>
+              </tfoot>
             </table>
           </div>
           <div id="txEmptyState" class="empty-state hidden">
