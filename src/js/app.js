@@ -91,10 +91,12 @@ class App {
     });
 
     // 3. Initial Balance Modal
-    document.getElementById('btnInitialBalance')?.addEventListener('click', () => {
-      document.getElementById('balAmount').value = store.initialBalance;
+    const openBal = () => {
+      document.getElementById('balAmount').value = store.initialBalance || '';
       this.openModal('balModal');
-    });
+    };
+    document.getElementById('btnInitialBalance')?.addEventListener('click', openBal);
+    document.getElementById('btnEditInitialBalance')?.addEventListener('click', openBal);
 
     document.getElementById('btnCloseBalModal')?.addEventListener('click', () => this.closeModal('balModal'));
     document.getElementById('btnCancelBalModal')?.addEventListener('click', () => this.closeModal('balModal'));
@@ -726,6 +728,9 @@ class App {
     const fullSummary = store.getSummary(); // for actual balance (not date-filtered)
 
     // Dashboard Metrics (filtered)
+    const metricInitBal = document.getElementById('metricInitialBalance');
+    if (metricInitBal) metricInitBal.textContent = `₭${summary.initialBalance.toLocaleString()}`;
+
     document.getElementById('metricCashBalance').textContent = `₭${summary.cashBalance.toLocaleString()}`;
     const btnEditCash = document.getElementById('btnEditCashBalance');
     if (btnEditCash) {
