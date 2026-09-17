@@ -6,6 +6,7 @@ import { renderStockView } from './stock.js';
 import { posManager } from './pos.js';
 import { renderCODView, populateStockDropdownInCODModal, clearCODModalCart, setCODModalCart, codModalCart } from './cod.js';
 import { firebaseSync } from './firebase.js';
+import { soundStudio } from './soundStudio.js';
 
 // App Controller
 class App {
@@ -71,6 +72,7 @@ class App {
     this.updateDashFilterBadge();
     this.updateTxDateFilterBadge();
     this.updateCODFilterBadge();
+    soundStudio.init();
   }
 
   bindEvents() {
@@ -603,6 +605,8 @@ class App {
       this.renderCODPage();
     } else if (tabName === 'transactions') {
       this.renderTransactionsTable();
+    } else if (tabName === 'sound-studio') {
+      soundStudio.init();
     }
   }
 
@@ -756,7 +760,9 @@ class App {
     const actualBal   = fullSummary.actualBalance; // เงินโอน
     const cashBal     = fullSummary.cashBalance;   // เงินสด
     const grandTotalBalance = actualBal + cashBal;
-    const diff        = cashBal - actualBal;
+
+    // ส่วนต่าง (ยอดเงินรวมสุทธิ − รายรับรวม)
+    const diff        = grandTotalBalance - summary.totalIncome;
 
     const actualEl = document.getElementById('metricActualBalance');
     if (actualEl) actualEl.textContent = `₭${actualBal.toLocaleString()}`;
@@ -773,18 +779,15 @@ class App {
     const diffLbl = document.getElementById('metricBalanceDiffLabel');
     if (diffEl) {
       diffEl.textContent = `₭${Math.abs(diff).toLocaleString()}`;
-      if (actualBal === 0) {
-        diffEl.style.color = 'var(--text-dim)';
-        if (diffLbl) diffLbl.textContent = '— ยังไม่ได้บันทึกเงินจริง';
-      } else if (diff === 0) {
+      if (diff === 0) {
         diffEl.style.color = 'var(--income-color)';
-        if (diffLbl) diffLbl.textContent = '✅ ยอดตรงกันทุกบาท!';
+        if (diffLbl) diffLbl.textContent = '✅ ยอดรวมสุทธิตรงกับรายรับรวมพอดี!';
       } else if (diff > 0) {
-        diffEl.style.color = 'var(--expense-color)';
-        if (diffLbl) diffLbl.textContent = `⚠️ บัญชีจริงน้อยกว่าที่คำนวณ ₭${diff.toLocaleString()}`;
+        diffEl.style.color = '#fbbf24';
+        if (diffLbl) diffLbl.textContent = `ยอดรวมสุทธิมากกว่ารายรับรวม ₭${diff.toLocaleString()}`;
       } else {
-        diffEl.style.color = '#818cf8';
-        if (diffLbl) diffLbl.textContent = `ℹ️ บัญชีจริงมากกว่าที่คำนวณ ₭${Math.abs(diff).toLocaleString()}`;
+        diffEl.style.color = 'var(--expense-color)';
+        if (diffLbl) diffLbl.textContent = `ยอดรวมสุทธิน้อยกว่ารายรับรวม ₭${Math.abs(diff).toLocaleString()}`;
       }
     }
 
