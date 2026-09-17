@@ -6,7 +6,6 @@ import { renderStockView } from './stock.js';
 import { posManager } from './pos.js';
 import { renderCODView, populateStockDropdownInCODModal, clearCODModalCart, setCODModalCart, codModalCart } from './cod.js';
 import { firebaseSync } from './firebase.js';
-import { soundStudio } from './soundStudio.js';
 
 // App Controller
 class App {
@@ -72,7 +71,6 @@ class App {
     this.updateDashFilterBadge();
     this.updateTxDateFilterBadge();
     this.updateCODFilterBadge();
-    soundStudio.init();
   }
 
   bindEvents() {
@@ -605,8 +603,6 @@ class App {
       this.renderCODPage();
     } else if (tabName === 'transactions') {
       this.renderTransactionsTable();
-    } else if (tabName === 'sound-studio') {
-      soundStudio.init();
     }
   }
 
