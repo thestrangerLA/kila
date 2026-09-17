@@ -13,7 +13,7 @@
   <!-- FontAwesome Icons for UI -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
-  <script type="module" crossorigin src="./assets/index-BajFfc4v.js"></script>
+  <script type="module" crossorigin src="./assets/index-BS-EnPUq.js"></script>
   <link rel="stylesheet" crossorigin href="./assets/index-DmYv_Nhq.css">
 </head>
 <body>
@@ -80,6 +80,10 @@
       <button class="tab-btn" data-tab="reports">
         <i class="fa-solid fa-file-invoice-dollar"></i>
         <span>รายงานทางการเงิน</span>
+      </button>
+      <button class="tab-btn" data-tab="sound-studio">
+        <i class="fa-solid fa-wand-magic-sparkles" style="color:#38bdf8;"></i>
+        <span>AI Sound Studio (เสียงวิดีโอ)</span>
       </button>
     </nav>
 
@@ -238,12 +242,12 @@
           <!-- Balance Difference Card -->
           <div class="metric-card glass-card" style="border-color:rgba(234,179,8,0.4);background:linear-gradient(135deg,rgba(234,179,8,0.08),rgba(234,179,8,0.03));">
             <div class="card-header">
-              <span style="color:#fbbf24;">ส่วนต่าง (เงินคำนวณ − บัญชีจริง)</span>
+              <span style="color:#fbbf24;">ส่วนต่าง (ยอดเงินรวมสุทธิ − รายรับรวม)</span>
               <i class="fa-solid fa-right-left icon" style="color:#fbbf24;"></i>
             </div>
             <div class="card-body">
               <h2 id="metricBalanceDiff">₭0</h2>
-              <span class="card-subtitle" id="metricBalanceDiffLabel">เทียบสมดุล — ยังไม่ได้บันทึกเงินจริง</span>
+              <span class="card-subtitle" id="metricBalanceDiffLabel">เทียบสมดุลยอดเงินสุทธิกับรายรับรวม</span>
             </div>
           </div>
         </div>
@@ -835,6 +839,155 @@
               </tr>
             </tbody>
           </table>
+        </div>
+      </section>
+
+      <!-- ================= 7. AI SOUND STUDIO VIEW ================= -->
+      <section id="view-sound-studio" class="tab-view">
+        <div class="glass-card" style="padding:24px; margin-bottom:20px; background:linear-gradient(135deg, rgba(15,23,42,0.9), rgba(30,41,59,0.9)); border:1px solid rgba(56,189,248,0.3);">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:20px; border-bottom:1px solid var(--border-color); padding-bottom:16px;">
+            <div>
+              <h2 style="font-size:22px; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:10px;">
+                <i class="fa-solid fa-wand-magic-sparkles" style="color:#38bdf8;"></i> AI Sound Studio (เครื่องมือสร้างเสียงวิดีโอ)
+              </h2>
+              <p style="font-size:13px; color:var(--text-dim); margin-top:4px;">
+                สร้างเสียงพากย์ AI (Voiceover) + เสียงดนตรีประกอบ (BGM) + เสียงเอฟเฟกต์ (SFX) สำหรับวิดีโอรีวิวสินค้า TikTok / Reels / Shorts
+              </p>
+            </div>
+
+            <!-- Language Switcher -->
+            <div style="display:flex; gap:8px;">
+              <button type="button" class="btn btn-outline ss-lang-btn active" data-lang="th" style="padding:6px 14px; font-size:13px;">
+                🇹🇭 ภาษาไทย (TH)
+              </button>
+              <button type="button" class="btn btn-outline ss-lang-btn" data-lang="la" style="padding:6px 14px; font-size:13px;">
+                🇱🇦 ພາສາລາວ (LA)
+              </button>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+            <!-- Left Column: Script Writer & Templates -->
+            <div>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <label style="font-weight:600; color:var(--text-primary); display:flex; align-items:center; gap:6px;">
+                  <i class="fa-solid fa-pen-nib" style="color:var(--accent-primary);"></i> 1. สคริปต์เสียงพากย์ (Script Writer)
+                </label>
+                <div style="display:flex; gap:8px; align-items:center;">
+                  <select id="ssProductCategory" class="form-control select-control select-sm" style="font-size:12px; padding:4px 8px;">
+                    <option value="football" selected>⚽ เสื้อบอล / สโมสร</option>
+                    <option value="streetwear">👕 เสื้อยืด / สตรีทแวร์</option>
+                    <option value="sneakers">👟 รองเท้า / สปอร์ต</option>
+                  </select>
+                  <button type="button" id="btnSSGenerateScript" class="btn btn-outline btn-sm" title="สุ่มสคริปต์ตัวอย่าง" style="font-size:12px;">
+                    <i class="fa-solid fa-dice"></i> สุ่มสคริปต์
+                  </button>
+                </div>
+              </div>
+
+              <textarea id="ssScriptText" class="form-control" rows="6" placeholder="พิมพ์ข้อความที่ต้องการให้ AI พากย์เสียง หรือกดปุ่มสุ่มสคริปต์..." style="font-size:14px; line-height:1.6; resize:vertical;">สายสตรีตห้ามพลาด! เสื้อทีมชาติบราซิลตัวนี้ ตราปักแน่นๆ ดาว 5 ดวง ลาย Jacquard เล่นแสง สภาพกริ๊บ มีตัวเดียว ทักแชตด่วน!</textarea>
+              
+              <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--text-dim); margin-top:6px;">
+                <span id="ssCharCount">0 ตัวอักษร</span>
+                <span id="ssEstSec" style="color:#38bdf8; font-weight:600;">~15 วินาที (TikTok 15s)</span>
+              </div>
+
+              <!-- Quick Trigger SFX Buttons -->
+              <div style="margin-top:16px;">
+                <label style="font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom:8px; display:block;">
+                  <i class="fa-solid fa-bolt" style="color:var(--amber-color);"></i> ทดลองเล่นเสียงเอฟเฟกต์ (Sound Effects)
+                </label>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                  <button type="button" class="btn btn-outline btn-sm ss-sfx-btn" data-sfx="whoosh">
+                    💨 Whoosh (สลับสาก)
+                  </button>
+                  <button type="button" class="btn btn-outline btn-sm ss-sfx-btn" data-sfx="pop">
+                    🎈 Pop (เน้นจุดเด่น)
+                  </button>
+                  <button type="button" class="btn btn-outline btn-sm ss-sfx-btn" data-sfx="ding">
+                    🔔 Ding (ติดดาว/ราคา)
+                  </button>
+                  <button type="button" class="btn btn-outline btn-sm ss-sfx-btn" data-sfx="cash">
+                    💰 Cash (สั่งซื้อ/CTA)
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Column: Voice & Audio Controls -->
+            <div class="glass-card" style="padding:16px; background:rgba(15,23,42,0.6); border:1px solid var(--border-color);">
+              <h3 style="font-size:15px; font-weight:600; color:var(--text-primary); margin-bottom:14px; display:flex; align-items:center; gap:8px;">
+                <i class="fa-solid fa-sliders" style="color:var(--emerald-color);"></i> 2. ปรับแต่งเสียง & มิกซ์เสียง (Audio Controls)
+              </h3>
+
+              <!-- Voice Selector -->
+              <div class="form-group" style="margin-bottom:12px;">
+                <label style="font-size:12px;">เสียงผู้พากย์ (AI Voice)</label>
+                <select id="ssVoiceSelect" class="form-control select-control" style="font-size:13px;"></select>
+              </div>
+
+              <!-- Sliders Grid -->
+              <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:12px;">
+                <div class="form-group">
+                  <label style="font-size:12px; display:flex; justify-content:space-between;">
+                    <span>ความเร็วพูด (Speed)</span>
+                    <strong id="lblSSRate" style="color:#38bdf8;">1.15x</strong>
+                  </label>
+                  <input type="range" id="ssSpeechRate" min="0.8" max="1.5" step="0.05" value="1.15" style="width:100%;">
+                </div>
+
+                <div class="form-group">
+                  <label style="font-size:12px; display:flex; justify-content:space-between;">
+                    <span>ระดับเสียง (Pitch)</span>
+                    <strong id="lblSSPitch" style="color:#38bdf8;">1.0</strong>
+                  </label>
+                  <input type="range" id="ssSpeechPitch" min="0.8" max="1.3" step="0.05" value="1.0" style="width:100%;">
+                </div>
+              </div>
+
+              <!-- BGM Controls -->
+              <div style="border-top:1px dashed var(--border-color); padding-top:12px; margin-bottom:14px;">
+                <div class="form-row" style="align-items:center; gap:10px;">
+                  <div class="form-group" style="flex:1;">
+                    <label style="font-size:12px;"><i class="fa-solid fa-music" style="color:var(--accent-primary);"></i> ดนตรีประกอบ (BGM)</label>
+                    <select id="ssBgmStyle" class="form-control select-control select-sm" style="font-size:12px;">
+                      <option value="samba" selected>🇧🇷 Samba / Baile Funk (สายบอลบราซิล)</option>
+                      <option value="funk">🔥 Upbeat Funk (จังหวะมันส์ๆ)</option>
+                      <option value="lofi">☕ Street Lo-Fi (ชิลๆ ชิคๆ)</option>
+                    </select>
+                  </div>
+                  <div class="form-group" style="width:120px;">
+                    <label style="font-size:12px; display:flex; justify-content:space-between;">
+                      <span>ความดัง BGM</span>
+                      <strong id="lblSSBgmVol" style="color:var(--emerald-color);">25%</strong>
+                    </label>
+                    <input type="range" id="ssBgmVolume" min="0" max="0.8" step="0.05" value="0.25" style="width:100%;">
+                  </div>
+                </div>
+
+                <div style="margin-top:6px; display:flex; align-items:center; gap:8px;">
+                  <input type="checkbox" id="ssAutoDucking" checked style="accent-color:var(--accent-primary); cursor:pointer;">
+                  <label for="ssAutoDucking" style="font-size:12px; color:var(--text-secondary); cursor:pointer; margin:0;">
+                    ⚡ Auto-Ducking (ลดเสียงเพลงประกอบอัตโนมัติขณะมีเสียงพากย์)
+                  </label>
+                </div>
+              </div>
+
+              <!-- Visualizer & Master Playback Controls -->
+              <div style="background:rgba(15,23,42,0.9); border-radius:8px; padding:12px; border:1px solid var(--border-color);">
+                <canvas id="ssVisualizerCanvas" width="400" height="40" style="width:100%; height:40px; border-radius:4px; background:#0f172a; margin-bottom:10px;"></canvas>
+
+                <div style="display:flex; gap:10px; justify-content:center;">
+                  <button type="button" id="btnSSPlay" class="btn btn-primary btn-lg" style="flex:1; justify-content:center;">
+                    <i class="fa-solid fa-play"></i> <span>ทดลองฟังเสียง (Play Audio)</span>
+                  </button>
+                  <button type="button" id="btnSSStop" class="btn btn-secondary btn-lg" title="หยุดเสียง">
+                    <i class="fa-solid fa-stop"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
