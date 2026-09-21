@@ -625,12 +625,25 @@ class BizStore {
       courier: order.courier || 'ANS', // ANS, HAL, MX
       trackingNo: order.trackingNo || '',
       customerName: order.customerName || '',
+      items: order.items ? [...order.items] : [],
+      productName: order.productName || '',
+      qty: parseInt(order.qty, 10) || 0,
       codAmount: parseFloat(order.codAmount) || 0,
       costAmount: parseFloat(order.costAmount) || 0,
       shippingFee: parseFloat(order.shippingFee) || 0,
       status: order.status || 'pending', // pending, completed, returned
       note: order.note || ''
     };
+
+    // หักยอดใน stock
+    if (newOrder.items && newOrder.items.length > 0 && newOrder.status !== 'returned') {
+      newOrder.items.forEach(item => {
+        const stockItem = this.inventory.find(i => i.id === item.id);
+        if (stockItem) {
+          stockItem.stockQty = Math.max(0, stockItem.stockQty - (parseInt(item.qty, 10) || 1));
+        }
+      });
+    }
 
     this.codOrders.unshift(newOrder);
     this.saveToStorage();
@@ -641,19 +654,57 @@ class BizStore {
   updateCODOrder(id, updatedData) {
     const idx = this.codOrders.findIndex(o => o.id === id);
     if (idx !== -1) {
+      const oldOrder = this.codOrders[idx];
+
+      // คืนสต็อกรายการเก่าก่อนปรับแก้ไข
+      if (oldOrder.items && oldOrder.items.length > 0 && oldOrder.status !== 'returned') {
+        oldOrder.items.forEach(item => {
+          const stockItem = this.inventory.find(i => i.id === item.id);
+          if (stockItem) {
+            stockItem.stockQty += (parseInt(item.qty, 10) || 1);
+          }
+        });
+      }
+
+      const newItems = updatedData.items ? [...updatedData.items] : (oldOrder.items || []);
+      const newStatus = updatedData.status !== undefined ? updatedData.status : oldOrder.status;
+
       this.codOrders[idx] = {
-        ...this.codOrders[idx],
+        ...oldOrder,
         ...updatedData,
+        items: newItems,
         codAmount: parseFloat(updatedData.codAmount) || 0,
         costAmount: parseFloat(updatedData.costAmount) || 0,
         shippingFee: parseFloat(updatedData.shippingFee) || 0
       };
+
+      // หักยอดสต็อกใหม่ตามรายการสินค้าล่าสุด
+      if (newItems && newItems.length > 0 && newStatus !== 'returned') {
+        newItems.forEach(item => {
+          const stockItem = this.inventory.find(i => i.id === item.id);
+          if (stockItem) {
+            stockItem.stockQty = Math.max(0, stockItem.stockQty - (parseInt(item.qty, 10) || 1));
+          }
+        });
+      }
+
       this.saveToStorage();
       this.notify();
     }
   }
 
   deleteCODOrder(id) {
+    const order = this.codOrders.find(o => o.id === id);
+    if (order && order.items && order.items.length > 0 && order.status !== 'returned') {
+      // คืนสต็อกกลับเข้า Stock
+      order.items.forEach(item => {
+        const stockItem = this.inventory.find(i => i.id === item.id);
+        if (stockItem) {
+          stockItem.stockQty += (parseInt(item.qty, 10) || 1);
+        }
+      });
+    }
+
     this.codOrders = this.codOrders.filter(o => o.id !== id);
     this.saveToStorage();
     this.notify();
@@ -663,7 +714,31 @@ class BizStore {
     const order = this.codOrders.find(o => o.id === id);
     if (!order) return;
 
+    const oldStatus = order.status;
     order.status = newStatus;
+
+    // หากเปลี่ยนสถานะเป็น 'returned' (พัสดุตีกลับ) ให้คืนสินค้ากลับเข้าสต็อก
+    if (newStatus === 'returned' && oldStatus !== 'returned') {
+      if (order.items && order.items.length > 0) {
+        order.items.forEach(item => {
+          const stockItem = this.inventory.find(i => i.id === item.id);
+          if (stockItem) {
+            stockItem.stockQty += (parseInt(item.qty, 10) || 1);
+          }
+        });
+      }
+    }
+    // หากเปลี่ยนจาก 'returned' กลับมาเป็นส่งพัสดุ (pending / completed) ให้หักสต็อกออก
+    else if (oldStatus === 'returned' && newStatus !== 'returned') {
+      if (order.items && order.items.length > 0) {
+        order.items.forEach(item => {
+          const stockItem = this.inventory.find(i => i.id === item.id);
+          if (stockItem) {
+            stockItem.stockQty = Math.max(0, stockItem.stockQty - (parseInt(item.qty, 10) || 1));
+          }
+        });
+      }
+    }
 
     // If marked as completed (โอนแล้ว), auto-add Income Transaction to ledger if not added yet
     if (newStatus === 'completed' && !order.incomeTxAdded) {
