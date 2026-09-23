@@ -750,7 +750,9 @@ class App {
       netProfitEl.style.color = summary.netProfit >= 0 ? 'var(--income-color)' : 'var(--expense-color)';
     }
     const marginEl = document.getElementById('metricProfitMargin');
-    if (marginEl) marginEl.textContent = `อัตรากำไร: ${summary.profitMargin.toFixed(1)}%`;
+    if (marginEl) {
+      marginEl.textContent = `สูตร: ₭${summary.totalIncome.toLocaleString()} (รับ) − ₭${summary.totalCost.toLocaleString()} (ทุน) − ₭${summary.totalExpense.toLocaleString()} (จ่าย)`;
+    }
 
     // ยอดเงินโอน & ยอดเงินรวมสุทธิ (เงินโอน + เงินสด)
     const actualBal   = fullSummary.actualBalance; // เงินโอน
