@@ -4,6 +4,7 @@ import { firebaseSync } from './firebase.js';
 const STORAGE_KEYS = {
   TRANSACTIONS: 'kila_biz_transactions_kip',
   INITIAL_BALANCE: 'kila_biz_initial_balance_kip',
+  INITIAL_COST: 'kila_biz_initial_cost_kip',
   ACTUAL_BALANCE: 'kila_biz_actual_balance_kip',
   MANUAL_CASH: 'kila_biz_manual_cash_kip',
   STOCK: 'kila_biz_football_stock_kip',
@@ -64,6 +65,7 @@ class BizStore {
   constructor() {
     this.transactions = [];
     this.initialBalance = 0;
+    this.initialCost = 1308000; // ต้นทุนรวมตั้งต้น 1,308,000 KIP
     this.actualBalance = 0;   // เงินในบัญชีจริง (กรอกแมนวล)
     this.manualCashBalance = null; // เงินสดคงเหลือสะสมจริง (กรอกแมนวลได้)
     this.inventory = [];
@@ -98,6 +100,7 @@ class BizStore {
         if (Array.isArray(idbData.inventory))    this.inventory    = idbData.inventory;
         if (Array.isArray(idbData.codOrders))    this.codOrders     = idbData.codOrders;
         if (idbData.initialBalance !== undefined) this.initialBalance = parseFloat(idbData.initialBalance) || 0;
+        if (idbData.initialCost !== undefined)    this.initialCost    = parseFloat(idbData.initialCost) || 0;
         if (idbData.actualBalance  !== undefined) this.actualBalance  = parseFloat(idbData.actualBalance)  || 0;
         if (idbData.manualCashBalance !== undefined && idbData.manualCashBalance !== null) {
           this.manualCashBalance = parseFloat(idbData.manualCashBalance);
@@ -114,6 +117,7 @@ class BizStore {
     try {
       const savedTx    = localStorage.getItem(STORAGE_KEYS.TRANSACTIONS);
       const savedBal   = localStorage.getItem(STORAGE_KEYS.INITIAL_BALANCE);
+      const savedCost  = localStorage.getItem(STORAGE_KEYS.INITIAL_COST);
       const savedActual = localStorage.getItem(STORAGE_KEYS.ACTUAL_BALANCE);
       const savedManual = localStorage.getItem(STORAGE_KEYS.MANUAL_CASH);
       const savedStock = localStorage.getItem(STORAGE_KEYS.STOCK);
@@ -122,6 +126,7 @@ class BizStore {
 
       if (savedTx)      this.transactions   = JSON.parse(savedTx);
       if (savedBal  !== null) this.initialBalance = parseFloat(savedBal)  || 0;
+      if (savedCost !== null) this.initialCost    = parseFloat(savedCost) || 0;
       if (savedActual !== null) this.actualBalance = parseFloat(savedActual) || 0;
       if (savedManual !== null) this.manualCashBalance = parseFloat(savedManual);
       if (savedStock)   this.inventory      = JSON.parse(savedStock);
@@ -139,6 +144,7 @@ class BizStore {
     const fullData = {
       transactions:      this.transactions,
       initialBalance:    this.initialBalance,
+      initialCost:       this.initialCost,
       actualBalance:     this.actualBalance,
       manualCashBalance: this.manualCashBalance,
       inventory:         this.inventory,
@@ -153,6 +159,7 @@ class BizStore {
     try {
       localStorage.setItem(STORAGE_KEYS.TRANSACTIONS,   JSON.stringify(this.transactions));
       localStorage.setItem(STORAGE_KEYS.INITIAL_BALANCE, this.initialBalance.toString());
+      localStorage.setItem(STORAGE_KEYS.INITIAL_COST,    this.initialCost.toString());
       localStorage.setItem(STORAGE_KEYS.ACTUAL_BALANCE,  this.actualBalance.toString());
       if (this.manualCashBalance !== null) {
         localStorage.setItem(STORAGE_KEYS.MANUAL_CASH,   this.manualCashBalance.toString());
@@ -197,12 +204,19 @@ class BizStore {
     this.notify();
   }
 
+  setInitialCost(amount) {
+    this.initialCost = Math.max(0, parseFloat(amount) || 0);
+    this.saveToStorage();
+    this.notify();
+  }
+
   // Clear ALL transactions and inventory (keep theme & balances)
   clearAllData() {
     this.transactions   = [];
     this.inventory      = [];
     this.codOrders       = [];
     this.initialBalance = 0;
+    this.initialCost    = 1308000;
     this.actualBalance  = 0;
     this.manualCashBalance = null;
     
@@ -211,6 +225,7 @@ class BizStore {
     localStorage.removeItem(STORAGE_KEYS.STOCK);
     localStorage.removeItem(STORAGE_KEYS.COD);
     localStorage.removeItem(STORAGE_KEYS.INITIAL_BALANCE);
+    localStorage.removeItem(STORAGE_KEYS.INITIAL_COST);
     localStorage.removeItem(STORAGE_KEYS.ACTUAL_BALANCE);
     localStorage.removeItem(STORAGE_KEYS.MANUAL_CASH);
 
@@ -225,6 +240,7 @@ class BizStore {
       appName: 'KilaBizAccount',
       exportDate: new Date().toISOString(),
       initialBalance: this.initialBalance,
+      initialCost: this.initialCost,
       actualBalance: this.actualBalance,
       transactions: this.transactions,
       inventory: this.inventory,
@@ -236,6 +252,7 @@ class BizStore {
   importAllDataJSON(data) {
     if (!data || typeof data !== 'object') return false;
     if (typeof data.initialBalance === 'number') this.initialBalance = data.initialBalance;
+    if (typeof data.initialCost === 'number') this.initialCost = data.initialCost;
     if (typeof data.actualBalance === 'number') this.actualBalance = data.actualBalance;
     if (Array.isArray(data.transactions)) this.transactions = data.transactions;
     if (Array.isArray(data.inventory)) this.inventory = data.inventory;
@@ -501,7 +518,7 @@ class BizStore {
   getSummary() {
     let totalIncome = 0;
     let totalExpense = 0;
-    let totalCost = 0;
+    let totalCost = this.initialCost || 0;
     let directCostPaid = 0; // ยอดจ่ายออกจริงสำหรับรายการประเภท cost
 
     this.transactions.forEach(t => {
@@ -547,6 +564,7 @@ class BizStore {
 
     return {
       initialBalance: this.initialBalance,
+      initialCost: this.initialCost,
       actualBalance: this.actualBalance,
       balanceDiff: cashBalance - this.actualBalance,  // ส่วนต่าง (บวก = บัญชีน้อยกว่าที่คำนวณ)
       totalIncome,
@@ -591,7 +609,7 @@ class BizStore {
   // Compute summary for a filtered subset of transactions
   getFilteredSummary(filters = {}) {
     const txList = this.getFilteredTransactions(filters);
-    let totalIncome = 0, totalExpense = 0, totalCost = 0;
+    let totalIncome = 0, totalExpense = 0, totalCost = this.initialCost || 0;
     txList.forEach(t => {
       const amt = t.amount || 0;
       if (t.type === 'income') {
@@ -611,7 +629,7 @@ class BizStore {
     const cashBalance = fullSummary.cashBalance;
 
     const profitMargin = totalIncome > 0 ? (netProfit / totalIncome) * 100 : 0;
-    return { totalIncome, totalExpense, totalCost, totalOutflow, netProfit, cashBalance, profitMargin, initialBalance: this.initialBalance, txCount: txList.length };
+    return { totalIncome, totalExpense, totalCost, totalOutflow, netProfit, cashBalance, profitMargin, initialBalance: this.initialBalance, initialCost: this.initialCost, txCount: txList.length };
   }
 
   // Get all unique years present in transactions

@@ -149,6 +149,22 @@ class App {
       this.showToast('เปลี่ยนเป็นยอดคำนวณเงินสดอัตโนมัติเรียบร้อย!');
     });
 
+    // 4b. Cost Balance (ต้นทุนตั้งต้น) Modal
+    const openCostBal = () => {
+      document.getElementById('costBalAmount').value = store.initialCost !== undefined ? store.initialCost : 1308000;
+      this.openModal('costBalModal');
+    };
+    document.getElementById('btnEditInitialCost')?.addEventListener('click', openCostBal);
+    document.getElementById('btnCloseCostBalModal')?.addEventListener('click', () => this.closeModal('costBalModal'));
+    document.getElementById('btnCancelCostBalModal')?.addEventListener('click', () => this.closeModal('costBalModal'));
+    document.getElementById('costBalForm')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const val = parseFloat(document.getElementById('costBalAmount').value) || 0;
+      store.setInitialCost(val);
+      this.closeModal('costBalModal');
+      this.showToast('บันทึกต้นทุนตั้งต้นเรียบร้อย!');
+    });
+
 
 
     // 4b. Clear All Data
@@ -742,6 +758,10 @@ class App {
     }
     document.getElementById('metricTotalIncome').textContent = `₭${summary.totalIncome.toLocaleString()}`;
     document.getElementById('metricTotalCost').textContent = `₭${summary.totalCost.toLocaleString()}`;
+    const btnEditCost = document.getElementById('btnEditInitialCost');
+    if (btnEditCost) {
+      btnEditCost.innerHTML = `<i class="fa-solid fa-pen"></i> ต้นทุนตั้งต้น: ₭${(store.initialCost || 0).toLocaleString()} (คลิกแก้ไข)`;
+    }
     document.getElementById('metricTotalExpense').textContent = `₭${summary.totalExpense.toLocaleString()}`;
 
     const netProfitEl = document.getElementById('metricNetProfit');

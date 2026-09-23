@@ -41,6 +41,7 @@ class FirebaseFirestoreManager {
         inventoryJson:    { stringValue: JSON.stringify(store.inventory || []) },
         codOrdersJson:    { stringValue: JSON.stringify(store.codOrders || []) },
         initialBalance:   { doubleValue: store.initialBalance || 0 },
+        initialCost:      { doubleValue: store.initialCost || 0 },
         actualBalance:    { doubleValue: store.actualBalance || 0 },
         manualCashBalance: store.manualCashBalance !== null ? { doubleValue: store.manualCashBalance } : { nullValue: null },
         lastUpdated:      { stringValue: new Date().toISOString() }
@@ -96,6 +97,9 @@ class FirebaseFirestoreManager {
       }
       if (fields.initialBalance) {
         store.initialBalance = fields.initialBalance.doubleValue || fields.initialBalance.integerValue || 0;
+      }
+      if (fields.initialCost) {
+        store.initialCost = fields.initialCost.doubleValue || fields.initialCost.integerValue || 0;
       }
       if (fields.actualBalance) {
         store.actualBalance = fields.actualBalance.doubleValue || fields.actualBalance.integerValue || 0;
