@@ -272,6 +272,11 @@ class BizStore {
       tags: tx.tags || ''
     };
 
+    // หากเป็นประเภทต้นทุน (cost) ให้หักเงินจากยอดเงินโอน (actualBalance) อัตโนมัติ
+    if (newTx.type === 'cost' && newTx.amount > 0) {
+      this.actualBalance = Math.max(0, this.actualBalance - newTx.amount);
+    }
+
     this.transactions.unshift(newTx);
     this.saveToStorage();
     this.notify();
@@ -281,17 +286,36 @@ class BizStore {
   updateTransaction(id, updatedTx) {
     const index = this.transactions.findIndex(t => t.id === id);
     if (index !== -1) {
-      this.transactions[index] = {
-        ...this.transactions[index],
+      const oldTx = this.transactions[index];
+
+      // หากเดิมเป็นต้นทุน ให้คืนยอดเงินโอนเดิมเข้าบัญชีก่อน
+      if (oldTx.type === 'cost' && oldTx.amount > 0) {
+        this.actualBalance += oldTx.amount;
+      }
+
+      const finalTx = {
+        ...oldTx,
         ...updatedTx,
         amount: parseFloat(updatedTx.amount) || 0
       };
+
+      // หากรายการใหม่เป็นประเภทต้นทุน ให้หักเงินยอดใหม่จากยอดเงินโอน
+      if (finalTx.type === 'cost' && finalTx.amount > 0) {
+        this.actualBalance = Math.max(0, this.actualBalance - finalTx.amount);
+      }
+
+      this.transactions[index] = finalTx;
       this.saveToStorage();
       this.notify();
     }
   }
 
   deleteTransaction(id) {
+    const txToDelete = this.transactions.find(t => t.id === id);
+    if (txToDelete && txToDelete.type === 'cost' && txToDelete.amount > 0) {
+      // คืนเงินกลับเข้ายอดเงินโอนเมื่อลบรายการต้นทุน
+      this.actualBalance += txToDelete.amount;
+    }
     this.transactions = this.transactions.filter(t => t.id !== id);
     this.saveToStorage();
     this.notify();
