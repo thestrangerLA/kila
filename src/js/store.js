@@ -566,7 +566,7 @@ class BizStore {
       initialBalance: this.initialBalance,
       initialCost: this.initialCost,
       actualBalance: this.actualBalance,
-      balanceDiff: cashBalance - this.actualBalance,  // ส่วนต่าง (บวก = บัญชีน้อยกว่าที่คำนวณ)
+      balanceDiff: netProfit - (this.actualBalance + cashBalance),  // ส่วนต่าง = ยอดคงเหลือ − ยอดเงินรวมสุทธิ (เงินโอน + เงินสด)
       totalIncome,
       totalExpense,
       totalCost,

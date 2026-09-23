@@ -779,8 +779,8 @@ class App {
     const cashBal     = fullSummary.cashBalance;   // เงินสด
     const grandTotalBalance = actualBal + cashBal;
 
-    // ส่วนต่าง (ยอดเงินรวมสุทธิ − รายรับรวม)
-    const diff        = grandTotalBalance - summary.totalIncome;
+    // ส่วนต่าง (ยอดคงเหลือ − ยอดเงินรวมสุทธิ (เงินโอน + เงินสด))
+    const diff        = summary.netProfit - grandTotalBalance;
 
     const actualEl = document.getElementById('metricActualBalance');
     if (actualEl) actualEl.textContent = `₭${actualBal.toLocaleString()}`;
@@ -799,13 +799,13 @@ class App {
       diffEl.textContent = `₭${Math.abs(diff).toLocaleString()}`;
       if (diff === 0) {
         diffEl.style.color = 'var(--income-color)';
-        if (diffLbl) diffLbl.textContent = '✅ ยอดรวมสุทธิตรงกับรายรับรวมพอดี!';
+        if (diffLbl) diffLbl.textContent = '✅ ยอดคงเหลือตรงกับยอดเงินรวมสุทธิพอดี!';
       } else if (diff > 0) {
         diffEl.style.color = '#fbbf24';
-        if (diffLbl) diffLbl.textContent = `ยอดรวมสุทธิมากกว่ารายรับรวม ₭${diff.toLocaleString()}`;
+        if (diffLbl) diffLbl.textContent = `ยอดคงเหลือมากกว่ายอดเงินรวมสุทธิ ₭${diff.toLocaleString()}`;
       } else {
         diffEl.style.color = 'var(--expense-color)';
-        if (diffLbl) diffLbl.textContent = `ยอดรวมสุทธิน้อยกว่ารายรับรวม ₭${Math.abs(diff).toLocaleString()}`;
+        if (diffLbl) diffLbl.textContent = `ยอดคงเหลือน้อยกว่ายอดเงินรวมสุทธิ ₭${Math.abs(diff).toLocaleString()}`;
       }
     }
 
