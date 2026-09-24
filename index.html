@@ -13,7 +13,7 @@
   <!-- FontAwesome Icons for UI -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
-  <script type="module" crossorigin src="./assets/index-Cbm8HGFq.js"></script>
+  <script type="module" crossorigin src="./assets/index-BmvNlPe2.js"></script>
   <link rel="stylesheet" crossorigin href="./assets/index-DmYv_Nhq.css">
 </head>
 <body>
@@ -1320,25 +1320,26 @@
       </div>
     </div>
 
-    <!-- Modal: ต้นทุนตั้งต้น (Initial Cost Balance) -->
+    <!-- Modal: ต้นทุน / รายจ่ายดำเนินงานรวมต้นทุน (Expense & Cost Balance) -->
     <div id="costBalModal" class="modal-overlay hidden">
       <div class="modal-card glass-card modal-sm">
         <div class="modal-header">
-          <h3><i class="fa-solid fa-boxes-packing" style="color:#f59e0b;"></i> บันทึกต้นทุนตั้งต้น (KIP ₭)</h3>
+          <h3><i class="fa-solid fa-boxes-packing" style="color:#f59e0b;"></i> บันทึกยอดรายจ่ายดำเนินงานรวมต้นทุน (KIP ₭)</h3>
           <button id="btnCloseCostBalModal" class="btn-close">&times;</button>
         </div>
         <form id="costBalForm">
           <div class="form-group" style="margin-top:12px;">
-            <label style="font-size:13px;color:var(--text-secondary);">ยอดต้นทุนตั้งต้น (เริ่มต้น 1,308,000 KIP)</label>
-            <input type="number" id="costBalAmount" class="form-control" placeholder="1308000" min="0" step="any" required
+            <label style="font-size:13px;color:var(--text-secondary);">ยอดรายจ่ายดำเนินงานรวมต้นทุนที่ต้องการปรับระบุ (เช่น 0)</label>
+            <input type="number" id="costBalAmount" class="form-control" placeholder="0" min="0" step="any"
               style="font-size:20px;font-weight:700;text-align:right;color:#f59e0b;">
             <small style="color:var(--text-dim);margin-top:6px;display:block;">
-              <i class="fa-solid fa-circle-info"></i> ปรับแก้ไขยอดต้นทุนตั้งต้นของธุรกิจ
+              <i class="fa-solid fa-circle-info"></i> กรอกจำนวนเงิน 0 หรือยอดที่ต้องการ (หรือเว้นว่างเพื่อใช้ยอดคำนวณอัตโนมัติ)
             </small>
           </div>
           <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">บันทึกยอดเงิน</button>
+            <button type="button" id="btnResetAutoCost" class="btn btn-outline" style="border-color:var(--border-color);">ใช้ยอดคำนวณ</button>
             <button type="button" id="btnCancelCostBalModal" class="btn btn-secondary">ยกเลิก</button>
-            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> บันทึก</button>
           </div>
         </form>
       </div>
