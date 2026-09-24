@@ -13,7 +13,7 @@
   <!-- FontAwesome Icons for UI -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
-  <script type="module" crossorigin src="./assets/index-DK_FgMjh.js"></script>
+  <script type="module" crossorigin src="./assets/index-DRG-xqvz.js"></script>
   <link rel="stylesheet" crossorigin href="./assets/index-DmYv_Nhq.css">
 </head>
 <body>
@@ -171,20 +171,6 @@
             </div>
           </div>
 
-          <!-- Cost Card -->
-          <div class="metric-card glass-card card-amber">
-            <div class="card-header">
-              <span>ต้นทุนรวม (Cost of Goods)</span>
-              <i class="fa-solid fa-boxes-packing icon"></i>
-            </div>
-            <div class="card-body">
-              <h2 id="metricTotalCost">₭0</h2>
-              <button id="btnEditInitialCost" class="card-subtitle" style="background:none;border:none;cursor:pointer;color:var(--accent-primary);font-size:11px;padding:0;display:flex;align-items:center;gap:4px;margin-top:4px;">
-                <i class="fa-solid fa-pen"></i> คลิกเพื่อตั้งค่า/แก้ไขต้นทุนตั้งต้น (เริ่มต้น ₭1,308,000)
-              </button>
-            </div>
-          </div>
-
           <!-- Expense Card -->
           <div class="metric-card glass-card card-rose">
             <div class="card-header">
@@ -194,20 +180,6 @@
             <div class="card-body">
               <h2 id="metricTotalExpense">₭0</h2>
               <span class="card-subtitle">ค่าเช่าร้าน ค่าไฟ ค่าแอด ค่าขนส่ง</span>
-            </div>
-          </div>
-
-          <!-- Net Remaining Card (ยอดคงเหลือ = รายรับรวม - ต้นทุน - รายจ่าย) -->
-          <div class="metric-card glass-card card-indigo">
-            <div class="card-header">
-              <span>ยอดคงเหลือ (รายรับรวม − ต้นทุน − รายจ่าย)</span>
-              <i class="fa-solid fa-scale-balanced icon"></i>
-            </div>
-            <div class="card-body">
-              <h2 id="metricNetProfit">₭0</h2>
-              <span class="card-subtitle" id="metricProfitMargin" style="font-size:10px; color:var(--text-secondary);">
-                คำนวณจาก: รายรับรวม − ต้นทุนรวม − รายจ่ายดำเนินงาน
-              </span>
             </div>
           </div>
 
@@ -236,18 +208,6 @@
               <span class="card-subtitle" id="metricGrandTotalBreakdown" style="color:var(--text-secondary);font-size:11px;">
                 รวมเงินโอน + เงินสด
               </span>
-            </div>
-          </div>
-
-          <!-- Balance Difference Card -->
-          <div class="metric-card glass-card" style="border-color:rgba(234,179,8,0.4);background:linear-gradient(135deg,rgba(234,179,8,0.08),rgba(234,179,8,0.03));">
-            <div class="card-header">
-              <span style="color:#fbbf24;">ส่วนต่าง (ยอดคงเหลือ − ยอดเงินรวมสุทธิ)</span>
-              <i class="fa-solid fa-right-left icon" style="color:#fbbf24;"></i>
-            </div>
-            <div class="card-body">
-              <h2 id="metricBalanceDiff">₭0</h2>
-              <span class="card-subtitle" id="metricBalanceDiffLabel">เทียบสมดุลยอดคงเหลือกับยอดเงินรวมสุทธิ (เงินโอน + เงินสด)</span>
             </div>
           </div>
         </div>
