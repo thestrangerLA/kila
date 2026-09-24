@@ -525,9 +525,6 @@ class BizStore {
       const amt = t.amount || 0;
       if (t.type === 'income') {
         totalIncome += amt;
-        if (t.linkedCost > 0) {
-          totalCost += t.linkedCost;
-        }
       }
       else if (t.type === 'expense') {
         totalExpense += amt;
@@ -614,9 +611,6 @@ class BizStore {
       const amt = t.amount || 0;
       if (t.type === 'income') {
         totalIncome += amt;
-        if (t.linkedCost > 0) {
-          totalCost += t.linkedCost;
-        }
       }
       else if (t.type === 'expense') totalExpense += amt;
       else if (t.type === 'cost') totalCost += amt;
