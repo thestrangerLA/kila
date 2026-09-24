@@ -756,13 +756,16 @@ class App {
         btnEditCash.innerHTML = `<i class="fa-solid fa-pen"></i> คลิกเพื่อบันทึกยอดเงินสดจริง`;
       }
     }
-    document.getElementById('metricTotalIncome').textContent = `₭${summary.totalIncome.toLocaleString()}`;
-    document.getElementById('metricTotalCost').textContent = `₭${summary.totalCost.toLocaleString()}`;
+    const incEl = document.getElementById('metricTotalIncome');
+    if (incEl) incEl.textContent = `₭${summary.totalIncome.toLocaleString()}`;
+    const costEl = document.getElementById('metricTotalCost');
+    if (costEl) costEl.textContent = `₭${summary.totalCost.toLocaleString()}`;
     const btnEditCost = document.getElementById('btnEditInitialCost');
     if (btnEditCost) {
       btnEditCost.innerHTML = `<i class="fa-solid fa-pen"></i> ต้นทุนตั้งต้น: ₭${(store.initialCost || 0).toLocaleString()} (คลิกแก้ไข)`;
     }
-    document.getElementById('metricTotalExpense').textContent = `₭${summary.totalExpense.toLocaleString()}`;
+    const expEl = document.getElementById('metricTotalExpense');
+    if (expEl) expEl.textContent = `₭${summary.totalExpense.toLocaleString()}`;
 
     const netProfitEl = document.getElementById('metricNetProfit');
     if (netProfitEl) {
