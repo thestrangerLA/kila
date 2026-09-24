@@ -13,7 +13,7 @@
   <!-- FontAwesome Icons for UI -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
-  <script type="module" crossorigin src="./assets/index-DHHt8a6W.js"></script>
+  <script type="module" crossorigin src="./assets/index-CVKCogFi.js"></script>
   <link rel="stylesheet" crossorigin href="./assets/index-DmYv_Nhq.css">
 </head>
 <body>
@@ -171,7 +171,7 @@
             </div>
           </div>
 
-          <!-- Expense Card -->
+          <!-- Expense Card (รายจ่ายดำเนินงานรวมต้นทุน) -->
           <div class="metric-card glass-card card-rose">
             <div class="card-header">
               <span>รายจ่ายดำเนินงานรวมต้นทุน (Expenses & Costs)</span>
@@ -179,7 +179,23 @@
             </div>
             <div class="card-body">
               <h2 id="metricTotalExpense">₭0</h2>
-              <span class="card-subtitle" id="metricTotalExpenseSub">รวมรายจ่ายดำเนินงาน + ต้นทุนสินค้า</span>
+              <button id="btnEditInitialCost" class="card-subtitle" style="background:none;border:none;cursor:pointer;color:var(--accent-primary);font-size:11px;padding:0;display:flex;align-items:center;gap:4px;margin-top:4px;">
+                <i class="fa-solid fa-pen"></i> ต้นทุนตั้งต้น: ₭1,308,000 (คลิกแก้ไข)
+              </button>
+            </div>
+          </div>
+
+          <!-- Net Income Minus Outflow Card (รายรับลบรายจ่าย) -->
+          <div class="metric-card glass-card card-indigo">
+            <div class="card-header">
+              <span>รายรับลบรายจ่าย (Income − Outflow)</span>
+              <i class="fa-solid fa-scale-balanced icon"></i>
+            </div>
+            <div class="card-body">
+              <h2 id="metricNetProfit">₭0</h2>
+              <span class="card-subtitle" id="metricProfitMargin" style="font-size:10px; color:var(--text-secondary);">
+                คำนวณจาก: รายรับรวม − รายจ่ายดำเนินงานรวมต้นทุน
+              </span>
             </div>
           </div>
 
@@ -208,6 +224,18 @@
               <span class="card-subtitle" id="metricGrandTotalBreakdown" style="color:var(--text-secondary);font-size:11px;">
                 รวมเงินโอน + เงินสด
               </span>
+            </div>
+          </div>
+
+          <!-- Balance Difference Card (ส่วนต่าง) -->
+          <div class="metric-card glass-card" style="border-color:rgba(234,179,8,0.4);background:linear-gradient(135deg,rgba(234,179,8,0.08),rgba(234,179,8,0.03));">
+            <div class="card-header">
+              <span style="color:#fbbf24;">ส่วนต่าง (รายรับลบรายจ่าย − ยอดเงินรวมสุทธิ)</span>
+              <i class="fa-solid fa-right-left icon" style="color:#fbbf24;"></i>
+            </div>
+            <div class="card-body">
+              <h2 id="metricBalanceDiff">₭0</h2>
+              <span class="card-subtitle" id="metricBalanceDiffLabel">เทียบสมดุล (รายรับลบรายจ่าย) กับ ยอดเงินรวมสุทธิ (เงินโอน + เงินสด)</span>
             </div>
           </div>
         </div>
