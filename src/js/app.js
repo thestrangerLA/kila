@@ -778,7 +778,7 @@ class App {
     }
     const marginEl = document.getElementById('metricProfitMargin');
     if (marginEl) {
-      marginEl.textContent = `สูตร: ₭${summary.totalIncome.toLocaleString()} (รับ) − ₭${summary.totalCost.toLocaleString()} (ทุน) − ₭${summary.totalExpense.toLocaleString()} (จ่าย)`;
+      marginEl.textContent = `สูตร: ₭${summary.totalIncome.toLocaleString()} (รับ) − ₭${summary.totalOutflow.toLocaleString()} (จ่ายรวมทุน) = ₭${summary.netProfit.toLocaleString()}`;
     }
 
     // ยอดเงินโอน & ยอดเงินรวมสุทธิ (เงินโอน + เงินสด)
@@ -786,7 +786,7 @@ class App {
     const cashBal     = fullSummary.cashBalance;   // เงินสด
     const grandTotalBalance = actualBal + cashBal;
 
-    // ส่วนต่าง (ยอดคงเหลือ − ยอดเงินรวมสุทธิ (เงินโอน + เงินสด))
+    // ส่วนต่าง (รายรับลบรายจ่าย − ยอดเงินรวมสุทธิ (เงินโอน + เงินสด))
     const diff        = summary.netProfit - grandTotalBalance;
 
     const actualEl = document.getElementById('metricActualBalance');
@@ -806,13 +806,13 @@ class App {
       diffEl.textContent = `₭${Math.abs(diff).toLocaleString()}`;
       if (diff === 0) {
         diffEl.style.color = 'var(--income-color)';
-        if (diffLbl) diffLbl.textContent = '✅ ยอดคงเหลือตรงกับยอดเงินรวมสุทธิพอดี!';
+        if (diffLbl) diffLbl.textContent = '✅ (รายรับลบรายจ่าย) ตรงกับยอดเงินรวมสุทธิพอดี!';
       } else if (diff > 0) {
         diffEl.style.color = '#fbbf24';
-        if (diffLbl) diffLbl.textContent = `ยอดคงเหลือมากกว่ายอดเงินรวมสุทธิ ₭${diff.toLocaleString()}`;
+        if (diffLbl) diffLbl.textContent = `(รายรับลบรายจ่าย) มากกว่ายอดเงินรวมสุทธิ ₭${diff.toLocaleString()}`;
       } else {
         diffEl.style.color = 'var(--expense-color)';
-        if (diffLbl) diffLbl.textContent = `ยอดคงเหลือน้อยกว่ายอดเงินรวมสุทธิ ₭${Math.abs(diff).toLocaleString()}`;
+        if (diffLbl) diffLbl.textContent = `(รายรับลบรายจ่าย) น้อยกว่ายอดเงินรวมสุทธิ ₭${Math.abs(diff).toLocaleString()}`;
       }
     }
 
