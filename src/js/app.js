@@ -765,7 +765,11 @@ class App {
       btnEditCost.innerHTML = `<i class="fa-solid fa-pen"></i> ต้นทุนตั้งต้น: ₭${(store.initialCost || 0).toLocaleString()} (คลิกแก้ไข)`;
     }
     const expEl = document.getElementById('metricTotalExpense');
-    if (expEl) expEl.textContent = `₭${summary.totalExpense.toLocaleString()}`;
+    if (expEl) expEl.textContent = `₭${summary.totalOutflow.toLocaleString()}`;
+    const expSubEl = document.getElementById('metricTotalExpenseSub');
+    if (expSubEl) {
+      expSubEl.textContent = `รายจ่าย (₭${summary.totalExpense.toLocaleString()}) + ต้นทุน (₭${summary.totalCost.toLocaleString()})`;
+    }
 
     const netProfitEl = document.getElementById('metricNetProfit');
     if (netProfitEl) {
