@@ -44,6 +44,7 @@ class FirebaseFirestoreManager {
         initialCost:      { doubleValue: store.initialCost || 0 },
         actualBalance:    { doubleValue: store.actualBalance || 0 },
         manualCashBalance: store.manualCashBalance !== null ? { doubleValue: store.manualCashBalance } : { nullValue: null },
+        manualCostBalance: store.manualCostBalance !== null ? { doubleValue: store.manualCostBalance } : { nullValue: null },
         lastUpdated:      { stringValue: new Date().toISOString() }
       }
     };
@@ -109,6 +110,13 @@ class FirebaseFirestoreManager {
           store.manualCashBalance = null;
         } else {
           store.manualCashBalance = fields.manualCashBalance.doubleValue ?? fields.manualCashBalance.integerValue ?? null;
+        }
+      }
+      if (fields.manualCostBalance !== undefined) {
+        if (fields.manualCostBalance.nullValue !== undefined) {
+          store.manualCostBalance = null;
+        } else {
+          store.manualCostBalance = fields.manualCostBalance.doubleValue ?? fields.manualCostBalance.integerValue ?? null;
         }
       }
 

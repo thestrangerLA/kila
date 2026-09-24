@@ -7,6 +7,7 @@ const STORAGE_KEYS = {
   INITIAL_COST: 'kila_biz_initial_cost_kip',
   ACTUAL_BALANCE: 'kila_biz_actual_balance_kip',
   MANUAL_CASH: 'kila_biz_manual_cash_kip',
+  MANUAL_COST: 'kila_biz_manual_cost_kip',
   STOCK: 'kila_biz_football_stock_kip',
   COD: 'kila_biz_cod_orders_kip',
   THEME: 'kila_biz_theme'
@@ -65,9 +66,10 @@ class BizStore {
   constructor() {
     this.transactions = [];
     this.initialBalance = 0;
-    this.initialCost = 1308000; // ต้นทุนรวมตั้งต้น 1,308,000 KIP
+    this.initialCost = 0; // ต้นทุนรวมตั้งต้น 0 KIP
     this.actualBalance = 0;   // เงินในบัญชีจริง (กรอกแมนวล)
     this.manualCashBalance = null; // เงินสดคงเหลือสะสมจริง (กรอกแมนวลได้)
+    this.manualCostBalance = null; // รายจ่ายดำเนินงานรวมต้นทุนจริง (กรอกแมนวลได้)
     this.inventory = [];
     this.codOrders = [];      // ติดตาม COD ขนส่ง (ANS, HAL, MX)
     this.theme = 'dark';
@@ -105,6 +107,9 @@ class BizStore {
         if (idbData.manualCashBalance !== undefined && idbData.manualCashBalance !== null) {
           this.manualCashBalance = parseFloat(idbData.manualCashBalance);
         }
+        if (idbData.manualCostBalance !== undefined && idbData.manualCostBalance !== null) {
+          this.manualCostBalance = parseFloat(idbData.manualCostBalance);
+        }
         if (idbData.theme)                        this.theme          = idbData.theme;
         this.notify();
         return;
@@ -120,6 +125,7 @@ class BizStore {
       const savedCost  = localStorage.getItem(STORAGE_KEYS.INITIAL_COST);
       const savedActual = localStorage.getItem(STORAGE_KEYS.ACTUAL_BALANCE);
       const savedManual = localStorage.getItem(STORAGE_KEYS.MANUAL_CASH);
+      const savedManualCost = localStorage.getItem(STORAGE_KEYS.MANUAL_COST);
       const savedStock = localStorage.getItem(STORAGE_KEYS.STOCK);
       const savedCOD   = localStorage.getItem(STORAGE_KEYS.COD);
       const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME);
@@ -129,6 +135,7 @@ class BizStore {
       if (savedCost !== null) this.initialCost    = parseFloat(savedCost) || 0;
       if (savedActual !== null) this.actualBalance = parseFloat(savedActual) || 0;
       if (savedManual !== null) this.manualCashBalance = parseFloat(savedManual);
+      if (savedManualCost !== null) this.manualCostBalance = parseFloat(savedManualCost);
       if (savedStock)   this.inventory      = JSON.parse(savedStock);
       if (savedCOD)     this.codOrders      = JSON.parse(savedCOD);
       if (savedTheme)   this.theme          = savedTheme;
@@ -147,6 +154,7 @@ class BizStore {
       initialCost:       this.initialCost,
       actualBalance:     this.actualBalance,
       manualCashBalance: this.manualCashBalance,
+      manualCostBalance: this.manualCostBalance,
       inventory:         this.inventory,
       codOrders:         this.codOrders,
       theme:             this.theme
@@ -165,6 +173,11 @@ class BizStore {
         localStorage.setItem(STORAGE_KEYS.MANUAL_CASH,   this.manualCashBalance.toString());
       } else {
         localStorage.removeItem(STORAGE_KEYS.MANUAL_CASH);
+      }
+      if (this.manualCostBalance !== null) {
+        localStorage.setItem(STORAGE_KEYS.MANUAL_COST,   this.manualCostBalance.toString());
+      } else {
+        localStorage.removeItem(STORAGE_KEYS.MANUAL_COST);
       }
       localStorage.setItem(STORAGE_KEYS.COD,             JSON.stringify(this.codOrders));
       localStorage.setItem(STORAGE_KEYS.THEME,           this.theme);
@@ -204,6 +217,16 @@ class BizStore {
     this.notify();
   }
 
+  setManualCostBalance(amount) {
+    if (amount === null || amount === undefined || amount === '') {
+      this.manualCostBalance = null;
+    } else {
+      this.manualCostBalance = Math.max(0, parseFloat(amount) || 0);
+    }
+    this.saveToStorage();
+    this.notify();
+  }
+
   setInitialCost(amount) {
     this.initialCost = Math.max(0, parseFloat(amount) || 0);
     this.saveToStorage();
@@ -216,9 +239,10 @@ class BizStore {
     this.inventory      = [];
     this.codOrders       = [];
     this.initialBalance = 0;
-    this.initialCost    = 1308000;
+    this.initialCost    = 0;
     this.actualBalance  = 0;
     this.manualCashBalance = null;
+    this.manualCostBalance = null;
     
     // Wipe local storage items
     localStorage.removeItem(STORAGE_KEYS.TRANSACTIONS);
@@ -228,6 +252,7 @@ class BizStore {
     localStorage.removeItem(STORAGE_KEYS.INITIAL_COST);
     localStorage.removeItem(STORAGE_KEYS.ACTUAL_BALANCE);
     localStorage.removeItem(STORAGE_KEYS.MANUAL_CASH);
+    localStorage.removeItem(STORAGE_KEYS.MANUAL_COST);
 
     this.saveToStorage();
     this.notify();
@@ -242,6 +267,7 @@ class BizStore {
       initialBalance: this.initialBalance,
       initialCost: this.initialCost,
       actualBalance: this.actualBalance,
+      manualCostBalance: this.manualCostBalance,
       transactions: this.transactions,
       inventory: this.inventory,
       codOrders: this.codOrders
@@ -254,6 +280,7 @@ class BizStore {
     if (typeof data.initialBalance === 'number') this.initialBalance = data.initialBalance;
     if (typeof data.initialCost === 'number') this.initialCost = data.initialCost;
     if (typeof data.actualBalance === 'number') this.actualBalance = data.actualBalance;
+    if (typeof data.manualCostBalance === 'number' || data.manualCostBalance === null) this.manualCostBalance = data.manualCostBalance;
     if (Array.isArray(data.transactions)) this.transactions = data.transactions;
     if (Array.isArray(data.inventory)) this.inventory = data.inventory;
     if (Array.isArray(data.codOrders)) this.codOrders = data.codOrders;
@@ -535,7 +562,8 @@ class BizStore {
       }
     });
 
-    const totalOutflow = totalExpense + totalCost;
+    const calculatedOutflow = totalExpense + totalCost;
+    const totalOutflow = this.manualCostBalance !== null ? this.manualCostBalance : calculatedOutflow;
     const netProfit = totalIncome - totalOutflow;
 
     // เงินสดคงเหลือสะสมในมือ (ถ้ากรอกแมนวล จะใช้ยอดแมนวล ถ้าไม่กรอก จะคำนวณอัตโนมัติ)
@@ -615,7 +643,8 @@ class BizStore {
       else if (t.type === 'expense') totalExpense += amt;
       else if (t.type === 'cost') totalCost += amt;
     });
-    const totalOutflow = totalExpense + totalCost;
+    const calculatedOutflow = totalExpense + totalCost;
+    const totalOutflow = this.manualCostBalance !== null ? this.manualCostBalance : calculatedOutflow;
     const netProfit = totalIncome - totalOutflow;
 
     // Cash Balance is always cumulative all-time total (includes carryover from previous months)

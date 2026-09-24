@@ -149,9 +149,10 @@ class App {
       this.showToast('เปลี่ยนเป็นยอดคำนวณเงินสดอัตโนมัติเรียบร้อย!');
     });
 
-    // 4b. Cost Balance (ต้นทุนตั้งต้น) Modal
+    // 4b. Cost / Expenses Balance Modal
     const openCostBal = () => {
-      document.getElementById('costBalAmount').value = store.initialCost !== undefined ? store.initialCost : 1308000;
+      const summary = store.getSummary();
+      document.getElementById('costBalAmount').value = store.manualCostBalance !== null ? store.manualCostBalance : summary.totalOutflow;
       this.openModal('costBalModal');
     };
     document.getElementById('btnEditInitialCost')?.addEventListener('click', openCostBal);
@@ -159,10 +160,16 @@ class App {
     document.getElementById('btnCancelCostBalModal')?.addEventListener('click', () => this.closeModal('costBalModal'));
     document.getElementById('costBalForm')?.addEventListener('submit', (e) => {
       e.preventDefault();
-      const val = parseFloat(document.getElementById('costBalAmount').value) || 0;
-      store.setInitialCost(val);
+      const rawVal = document.getElementById('costBalAmount').value.trim();
+      const val = rawVal !== '' ? parseFloat(rawVal) : null;
+      store.setManualCostBalance(val);
       this.closeModal('costBalModal');
-      this.showToast('บันทึกต้นทุนตั้งต้นเรียบร้อย!');
+      this.showToast('บันทึกยอดรายจ่ายดำเนินงานรวมต้นทุนเรียบร้อย!');
+    });
+    document.getElementById('btnResetAutoCost')?.addEventListener('click', () => {
+      store.setManualCostBalance(null);
+      this.closeModal('costBalModal');
+      this.showToast('เปลี่ยนเป็นยอดคำนวณต้นทุน/รายจ่ายอัตโนมัติเรียบร้อย!');
     });
 
 
@@ -762,7 +769,11 @@ class App {
     if (costEl) costEl.textContent = `₭${summary.totalCost.toLocaleString()}`;
     const btnEditCost = document.getElementById('btnEditInitialCost');
     if (btnEditCost) {
-      btnEditCost.innerHTML = `<i class="fa-solid fa-pen"></i> ต้นทุนตั้งต้น: ₭${(store.initialCost || 0).toLocaleString()} (คลิกแก้ไข)`;
+      if (store.manualCostBalance !== null) {
+        btnEditCost.innerHTML = `<i class="fa-solid fa-pen"></i> ยอดระบุเอง (คลิกแก้ไข)`;
+      } else {
+        btnEditCost.innerHTML = `<i class="fa-solid fa-pen"></i> คลิกเพื่อบันทึกยอดเงินต้นทุน/รายจ่ายจริง`;
+      }
     }
     const expEl = document.getElementById('metricTotalExpense');
     if (expEl) expEl.textContent = `₭${summary.totalOutflow.toLocaleString()}`;
