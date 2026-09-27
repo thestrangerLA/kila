@@ -766,12 +766,19 @@ class App {
     const incEl = document.getElementById('metricTotalIncome');
     if (incEl) incEl.textContent = `₭${summary.totalIncome.toLocaleString()}`;
 
-    const initPlusIncome = (store.initialBalance || 0) + summary.totalIncome;
+    const isDateFiltered = this.dashMonth !== 'all' || this.dashYear !== 'all' || Boolean(this.dashDateFrom) || Boolean(this.dashDateTo);
+    const initBalForPeriod = isDateFiltered ? 0 : (store.initialBalance || 0);
+
+    const initPlusIncome = initBalForPeriod + summary.totalIncome;
     const initPlusIncomeEl = document.getElementById('metricInitPlusIncome');
     if (initPlusIncomeEl) initPlusIncomeEl.textContent = `₭${initPlusIncome.toLocaleString()}`;
     const initPlusIncomeSubEl = document.getElementById('metricInitPlusIncomeSub');
     if (initPlusIncomeSubEl) {
-      initPlusIncomeSubEl.textContent = `เงินสดตั้งต้น (₭${(store.initialBalance || 0).toLocaleString()}) + รายรับรวม (₭${summary.totalIncome.toLocaleString()})`;
+      if (isDateFiltered) {
+        initPlusIncomeSubEl.textContent = `รายรับรวมช่วงเวลาที่เลือก (₭${summary.totalIncome.toLocaleString()})`;
+      } else {
+        initPlusIncomeSubEl.textContent = `เงินสดตั้งต้น (₭${initBalForPeriod.toLocaleString()}) + รายรับรวม (₭${summary.totalIncome.toLocaleString()})`;
+      }
     }
     const costEl = document.getElementById('metricTotalCost');
     if (costEl) costEl.textContent = `₭${summary.totalCost.toLocaleString()}`;
@@ -790,7 +797,7 @@ class App {
       expSubEl.textContent = `รายจ่าย (₭${summary.totalExpense.toLocaleString()}) + ต้นทุน (₭${summary.totalCost.toLocaleString()})`;
     }
 
-    const netIncomeMinusOutflow = (store.initialBalance || 0) + summary.totalIncome - summary.totalOutflow;
+    const netIncomeMinusOutflow = initBalForPeriod + summary.totalIncome - summary.totalOutflow;
 
     const netProfitEl = document.getElementById('metricNetProfit');
     if (netProfitEl) {
@@ -799,7 +806,11 @@ class App {
     }
     const marginEl = document.getElementById('metricProfitMargin');
     if (marginEl) {
-      marginEl.textContent = `สูตร: (เงินสดตั้งต้น ₭${(store.initialBalance || 0).toLocaleString()} + รายรับ ₭${summary.totalIncome.toLocaleString()}) − รายจ่ายรวมทุน ₭${summary.totalOutflow.toLocaleString()} = ₭${netIncomeMinusOutflow.toLocaleString()}`;
+      if (isDateFiltered) {
+        marginEl.textContent = `สูตร (ประจำเดือน): รายรับรวม ₭${summary.totalIncome.toLocaleString()} − รายจ่ายรวมทุน ₭${summary.totalOutflow.toLocaleString()} = ₭${netIncomeMinusOutflow.toLocaleString()}`;
+      } else {
+        marginEl.textContent = `สูตร: (เงินสดตั้งต้น ₭${initBalForPeriod.toLocaleString()} + รายรับ ₭${summary.totalIncome.toLocaleString()}) − รายจ่ายรวมทุน ₭${summary.totalOutflow.toLocaleString()} = ₭${netIncomeMinusOutflow.toLocaleString()}`;
+      }
     }
 
     // ยอดเงินโอน & ยอดเงินรวมสุทธิ (เงินโอน + เงินสด)
@@ -808,7 +819,9 @@ class App {
     const grandTotalBalance = actualBal + cashBal;
 
     // ส่วนต่าง (รายรับลบรายจ่าย − ยอดเงินรวมสุทธิ (เงินโอน + เงินสด))
-    const diff        = netIncomeMinusOutflow - grandTotalBalance;
+    const targetNetForDiff = isDateFiltered ? (summary.totalIncome - summary.totalOutflow) : netIncomeMinusOutflow;
+    const targetGrandTotalForDiff = isDateFiltered ? summary.netProfit : grandTotalBalance;
+    const diff = targetNetForDiff - targetGrandTotalForDiff;
 
     const actualEl = document.getElementById('metricActualBalance');
     if (actualEl) actualEl.textContent = `₭${actualBal.toLocaleString()}`;
