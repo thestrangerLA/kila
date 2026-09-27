@@ -552,6 +552,9 @@ class BizStore {
       const amt = t.amount || 0;
       if (t.type === 'income') {
         totalIncome += amt;
+        if (t.linkedCost > 0) {
+          totalCost += t.linkedCost;
+        }
       }
       else if (t.type === 'expense') {
         totalExpense += amt;
@@ -634,17 +637,21 @@ class BizStore {
   // Compute summary for a filtered subset of transactions
   getFilteredSummary(filters = {}) {
     const txList = this.getFilteredTransactions(filters);
-    let totalIncome = 0, totalExpense = 0, totalCost = this.initialCost || 0;
+    let totalIncome = 0, totalExpense = 0, totalCost = 0;
     txList.forEach(t => {
       const amt = t.amount || 0;
       if (t.type === 'income') {
         totalIncome += amt;
+        if (t.linkedCost > 0) {
+          totalCost += t.linkedCost;
+        }
       }
       else if (t.type === 'expense') totalExpense += amt;
       else if (t.type === 'cost') totalCost += amt;
     });
     const calculatedOutflow = totalExpense + totalCost;
-    const totalOutflow = this.manualCostBalance !== null ? this.manualCostBalance : calculatedOutflow;
+    const isAllFilters = (!filters.type || filters.type === 'all') && (!filters.month || filters.month === 'all') && (!filters.year || filters.year === 'all') && !filters.dateFrom && !filters.dateTo && !filters.search && (!filters.category || filters.category === 'all');
+    const totalOutflow = (isAllFilters && this.manualCostBalance !== null) ? this.manualCostBalance : calculatedOutflow;
     const netProfit = totalIncome - totalOutflow;
 
     // Cash Balance is always cumulative all-time total (includes carryover from previous months)
