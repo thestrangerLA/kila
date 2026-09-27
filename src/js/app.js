@@ -790,14 +790,16 @@ class App {
       expSubEl.textContent = `รายจ่าย (₭${summary.totalExpense.toLocaleString()}) + ต้นทุน (₭${summary.totalCost.toLocaleString()})`;
     }
 
+    const netIncomeMinusOutflow = (store.initialBalance || 0) + summary.totalIncome - summary.totalOutflow;
+
     const netProfitEl = document.getElementById('metricNetProfit');
     if (netProfitEl) {
-      netProfitEl.textContent = `₭${summary.netProfit.toLocaleString()}`;
-      netProfitEl.style.color = summary.netProfit >= 0 ? 'var(--income-color)' : 'var(--expense-color)';
+      netProfitEl.textContent = `₭${netIncomeMinusOutflow.toLocaleString()}`;
+      netProfitEl.style.color = netIncomeMinusOutflow >= 0 ? 'var(--income-color)' : 'var(--expense-color)';
     }
     const marginEl = document.getElementById('metricProfitMargin');
     if (marginEl) {
-      marginEl.textContent = `สูตร: ₭${summary.totalIncome.toLocaleString()} (รับ) − ₭${summary.totalOutflow.toLocaleString()} (จ่ายรวมทุน) = ₭${summary.netProfit.toLocaleString()}`;
+      marginEl.textContent = `สูตร: (เงินสดตั้งต้น ₭${(store.initialBalance || 0).toLocaleString()} + รายรับ ₭${summary.totalIncome.toLocaleString()}) − รายจ่ายรวมทุน ₭${summary.totalOutflow.toLocaleString()} = ₭${netIncomeMinusOutflow.toLocaleString()}`;
     }
 
     // ยอดเงินโอน & ยอดเงินรวมสุทธิ (เงินโอน + เงินสด)
@@ -806,7 +808,7 @@ class App {
     const grandTotalBalance = actualBal + cashBal;
 
     // ส่วนต่าง (รายรับลบรายจ่าย − ยอดเงินรวมสุทธิ (เงินโอน + เงินสด))
-    const diff        = summary.netProfit - grandTotalBalance;
+    const diff        = netIncomeMinusOutflow - grandTotalBalance;
 
     const actualEl = document.getElementById('metricActualBalance');
     if (actualEl) actualEl.textContent = `₭${actualBal.toLocaleString()}`;
