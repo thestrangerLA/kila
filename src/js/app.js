@@ -765,6 +765,14 @@ class App {
     }
     const incEl = document.getElementById('metricTotalIncome');
     if (incEl) incEl.textContent = `₭${summary.totalIncome.toLocaleString()}`;
+
+    const initPlusIncome = (store.initialBalance || 0) + summary.totalIncome;
+    const initPlusIncomeEl = document.getElementById('metricInitPlusIncome');
+    if (initPlusIncomeEl) initPlusIncomeEl.textContent = `₭${initPlusIncome.toLocaleString()}`;
+    const initPlusIncomeSubEl = document.getElementById('metricInitPlusIncomeSub');
+    if (initPlusIncomeSubEl) {
+      initPlusIncomeSubEl.textContent = `เงินสดตั้งต้น (₭${(store.initialBalance || 0).toLocaleString()}) + รายรับรวม (₭${summary.totalIncome.toLocaleString()})`;
+    }
     const costEl = document.getElementById('metricTotalCost');
     if (costEl) costEl.textContent = `₭${summary.totalCost.toLocaleString()}`;
     const btnEditCost = document.getElementById('btnEditInitialCost');
