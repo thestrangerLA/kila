@@ -256,7 +256,21 @@ export function renderCODCourierCards(monthFilter = 'all', yearFilter = 'all') {
     
     // Update badge (ค้าง X/Y)
     const badgeEl = document.getElementById(`codBadge${c.key}`);
-    if (badgeEl) badgeEl.textContent = `ค้าง ${metrics.pendingCount}/${metrics.totalCount}`;
+    if (badgeEl) {
+      badgeEl.textContent = `ค้าง ${metrics.pendingCount}/${metrics.totalCount}`;
+      const badgeParent = badgeEl.parentElement;
+      if (badgeParent && badgeParent.classList.contains('cod-card-badge')) {
+        if (metrics.pendingCount === 0) {
+          badgeParent.style.background = 'rgba(16, 185, 129, 0.15)';
+          badgeParent.style.color = '#34d399';
+          badgeParent.style.border = '1px solid rgba(16, 185, 129, 0.3)';
+        } else {
+          badgeParent.style.background = 'rgba(239, 68, 68, 0.15)';
+          badgeParent.style.color = '#f87171';
+          badgeParent.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+        }
+      }
+    }
 
     // Update รวมเงิน
     const totalEl = document.getElementById(`codTotal${c.key}`);
@@ -343,6 +357,10 @@ export function renderCODTable(searchQuery = '', courierFilter = 'all', statusFi
     const [yyyy, mm, dd] = dateStr.split('-');
     const formattedDateLabel = (dd && mm && yyyy) ? `วันที่ ${dd}/${mm}/${yyyy}` : `วันที่ ${dateStr}`;
 
+    const pendingBadgeStyle = pendingCount === 0
+      ? 'background:rgba(16,185,129,0.12); color:#34d399; border:1px solid rgba(16,185,129,0.3); padding:4px 12px; border-radius:20px; font-weight:600;'
+      : 'background:rgba(239,68,68,0.12); color:#f87171; border:1px solid rgba(239,68,68,0.3); padding:4px 12px; border-radius:20px; font-weight:600;';
+
     // Date Header Card (Collapsed by default with circular dropdown button)
     html += `
       <tr class="cod-date-group-header" data-date="${dateStr}">
@@ -356,7 +374,7 @@ export function renderCODTable(searchQuery = '', courierFilter = 'all', statusFi
               <small style="color:var(--text-dim);">(${totalCount} รายการ)</small>
             </div>
             <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:12px;">
-              <span style="background:rgba(239,68,68,0.12); color:#f87171; border:1px solid rgba(239,68,68,0.3); padding:4px 12px; border-radius:20px; font-weight:600;">
+              <span style="${pendingBadgeStyle}">
                 ค้างโอน: ${pendingCount}/${totalCount} order (₭${pendingAmount.toLocaleString()})
               </span>
               <span style="background:rgba(16,185,129,0.12); color:#34d399; border:1px solid rgba(16,185,129,0.3); padding:4px 12px; border-radius:20px; font-weight:600;">
